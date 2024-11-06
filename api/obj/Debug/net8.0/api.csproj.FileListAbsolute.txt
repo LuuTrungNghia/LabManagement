@@ -1,0 +1,8 @@
+D:\LabManagement\LabManagement\api\obj\Debug\net8.0\api.csproj.AssemblyReference.cache
+D:\LabManagement\LabManagement\api\obj\Debug\net8.0\api.GeneratedMSBuildEditorConfig.editorconfig
+D:\LabManagement\LabManagement\api\obj\Debug\net8.0\api.AssemblyInfoInputs.cache
+D:\LabManagement\LabManagement\api\obj\Debug\net8.0\api.AssemblyInfo.cs
+D:\LabManagement\LabManagement\api\obj\Debug\net8.0\api.csproj.CoreCompileInputs.cache
+D:\LabManagement\LabManagement\api\obj\Debug\net8.0\api.MvcApplicationPartsAssemblyInfo.cs
+D:\LabManagement\LabManagement\api\obj\Debug\net8.0\api.MvcApplicationPartsAssemblyInfo.cache
+D:\LabManagement\LabManagement\api\obj\Debug\net8.0\api.sourcelink.json
