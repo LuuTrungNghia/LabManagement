@@ -17,5 +17,7 @@ namespace api.Data
         
         // Thêm các bảng
         public DbSet<Device> Devices { get; set; }
+
+        public DbSet<User> Users { get; set; }
     }
-}
+} 
