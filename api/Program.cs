@@ -57,6 +57,7 @@ builder.Services.AddDbContext<ApplicationDBContext>(options => {
 // Thêm kho lưu trữ, thêm nội dung phụ thuộc vào dự án (DI)
 builder.Services.AddScoped<IDeviceRepository, DeviceRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<ILabRepository, LabRepository>();
 
 var app = builder.Build();
 

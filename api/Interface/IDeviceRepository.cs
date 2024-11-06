@@ -16,5 +16,6 @@ namespace api.Interface
         Task<Device> CreateAsync(Device deviceModel);
         Task<Device?> UpdateAsync(int id, UpdateDeviceRequestDto updateDto);
         Task<Device?> DeleteAsync(int id);
+        Task<List<Device>> ImportDevicesAsync(List<CreateDeviceRequestDto> deviceDtos);
     }
 }
