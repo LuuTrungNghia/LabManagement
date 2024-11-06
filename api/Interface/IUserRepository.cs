@@ -12,5 +12,9 @@ namespace api.Interface
         Task<UserDto> CreateAsync(CreateUserRequestDto userDto);
         Task<UserDto> UpdateAsync(int id, UpdateUserRequestDto userDto);
         Task<bool> DeleteAsync(int id);
+
+        Task<UserDto> ApproveUserAsync(int id); 
+        Task<UserDto> ResetPasswordAsync(int id, string newPassword);
+        Task<IEnumerable<UserDto>> ImportUsersAsync(IEnumerable<CreateUserRequestDto> userDtos);
     }
 }

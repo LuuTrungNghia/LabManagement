@@ -53,5 +53,28 @@ namespace api.Controllers
             if (!success) return NotFound();
             return NoContent();
         }
+
+        [HttpPut("approve/{id:int}")]
+        public async Task<IActionResult> ApproveUser(int id)
+        {
+            var user = await _userRepo.ApproveUserAsync(id);
+            if (user == null) return NotFound();
+            return Ok(user);
+        }
+
+        [HttpPut("reset-password/{id:int}")]
+        public async Task<IActionResult> ResetPassword(int id, [FromBody] string newPassword)
+        {
+            var user = await _userRepo.ResetPasswordAsync(id, newPassword);
+            if (user == null) return NotFound();
+            return Ok(user);
+        }
+
+        [HttpPost("import")]
+        public async Task<IActionResult> ImportUsers([FromBody] IEnumerable<CreateUserRequestDto> users)
+        {
+            var importedUsers = await _userRepo.ImportUsersAsync(users);
+            return Ok(importedUsers);
+        }
     }
 }

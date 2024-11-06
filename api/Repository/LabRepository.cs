@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace api.Repositories
 {
-    public class LabRepository : ILabRepository
+     public class LabRepository : ILabRepository
     {
         private readonly ApplicationDBContext _context;
 

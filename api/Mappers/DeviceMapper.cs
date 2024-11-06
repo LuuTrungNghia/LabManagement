@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using api.Dtos.Device;
 using api.Models;
 
@@ -15,8 +11,10 @@ namespace api.Mappers
             {
                 Id = deviceModel.Id,
                 DeviceName = deviceModel.DeviceName,
+                DeviceType = deviceModel.DeviceType,
                 Quantity = deviceModel.Quantity,
                 DeviceStatus = deviceModel.DeviceStatus,
+                IsAvailable = deviceModel.IsAvailable
             };
         }
 
@@ -25,8 +23,10 @@ namespace api.Mappers
             return new Device
             {
                 DeviceName = deviceDto.DeviceName,
-                DeviceStatus = deviceDto.DeviceStatus,
+                DeviceType = deviceDto.DeviceType,
                 Quantity = deviceDto.Quantity,
+                DeviceStatus = deviceDto.DeviceStatus,
+                IsAvailable = deviceDto.IsAvailable
             };
         }
     }
