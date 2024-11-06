@@ -1,11 +1,13 @@
 using api.Data;
 using api.Models;
 using api.Repository;
+using api.Interface; 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using api.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -54,6 +56,7 @@ builder.Services.AddDbContext<ApplicationDBContext>(options => {
 
 // Thêm kho lưu trữ, thêm nội dung phụ thuộc vào dự án (DI)
 builder.Services.AddScoped<IDeviceRepository, DeviceRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 var app = builder.Build();
 
