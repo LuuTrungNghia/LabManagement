@@ -1,149 +1,185 @@
+using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.Extensions.Logging;
 using api.Dtos.User;
 using api.Interfaces;
-using api.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace api.Controllers
 {
-    [Route("api/users")]
+    [Route("api/user")]
     [ApiController]
     public class UserController : ControllerBase
     {
-        private readonly IUserRepository _userRepo;
+        private readonly UserManager<IdentityUser> _userManager;
         private readonly ITokenService _tokenService;
-        private readonly ILogger<UserController> _logger;
+        private readonly SignInManager<IdentityUser> _signinManager;
 
-        public UserController(IUserRepository userRepo, ITokenService tokenService, ILogger<UserController> logger)
+        public UserController(UserManager<IdentityUser> userManager, ITokenService tokenService, SignInManager<IdentityUser> signInManager)
         {
-            _userRepo = userRepo;
+            _userManager = userManager;
             _tokenService = tokenService;
-            _logger = logger;
-        }
-
-        [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
-        {
-            if (string.IsNullOrWhiteSpace(loginDto.Username) || string.IsNullOrWhiteSpace(loginDto.Password))
-                return BadRequest("Username and password are required");
-
-            _logger.LogInformation($"Login attempt for user: {loginDto.Username}");
-
-            var user = await _userRepo.AuthenticateUserAsync(loginDto.Username, loginDto.Password);
-            if (user == null) return Unauthorized("Invalid credentials");
-
-            if (!user.IsApproved)
-            {
-                return Unauthorized("User is not approved.");
-            }
-
-            var token = _tokenService.CreateToken(user);
-
-            var userDto = new UserDto
-            {
-                Id = user.Id,
-                Name = user.Name,
-                Role = user.Role,
-                Email = user.Email,
-                IsApproved = user.IsApproved
-            };
-
-            return Ok(new LoginResponseDto 
-            { 
-                User = userDto, 
-                Token = token 
-            });
+            _signinManager = signInManager;
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
+        public async Task<IActionResult> Register(RegisterUserDto registerDto)
         {
-            var existingUserByUsername = await _userRepo.GetByUsernameOrEmailAsync(registerDto.Username);
-            if (existingUserByUsername != null)
+            var user = new IdentityUser
             {
-                return BadRequest("Username or email already in use.");
-            }
-
-            var existingUserByEmail = await _userRepo.GetByUsernameOrEmailAsync(registerDto.Email);
-            if (existingUserByEmail != null)
-            {
-                return BadRequest("Username or email already in use.");
-            }
-
-            var createdUserDto = await _userRepo.CreateAsync(registerDto);
-
-            var userForToken = new User
-            {
-                Id = createdUserDto.Id,
-                Name = createdUserDto.Name,
-                Role = createdUserDto.Role,
-                Email = createdUserDto.Email,
-                IsApproved = createdUserDto.IsApproved
+                UserName = registerDto.Username,
+                Email = registerDto.Email
             };
 
-            var token = _tokenService.CreateToken(userForToken);
-
-            return CreatedAtAction(nameof(GetById), new { id = createdUserDto.Id }, new 
+            var result = await _userManager.CreateAsync(user, registerDto.Password);
+            if (result.Succeeded)
             {
-                User = createdUserDto,
+                await _userManager.AddToRoleAsync(user, "user");
+                var token = _tokenService.CreateToken(user);
+
+                return Ok(new
+                {
+                    Username = user.UserName,
+                    Email = user.Email,
+                    Token = token
+                });
+            }
+
+            return BadRequest(result.Errors);
+        }
+
+        [HttpPost("login")]
+        public async Task<IActionResult> Login(LoginUserDto loginDto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var user = await _userManager.Users.FirstOrDefaultAsync(x => x.UserName == loginDto.Username.ToLower());
+            if (user == null) return Unauthorized("Invalid username!");
+
+            var result = await _signinManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
+            if (!result.Succeeded) return Unauthorized("Invalid password.");
+
+            var token = _tokenService.CreateToken(user);
+
+            return Ok(new
+            {
+                Username = user.UserName,
+                Email = user.Email,
                 Token = token
             });
         }
 
+        [HttpGet("get/{username}")]
+        // [Authorize(Roles = "admin,active")]
+        public async Task<IActionResult> GetUser(string username)
+        {
+            var user = await _userManager.FindByNameAsync(username);
+            if (user == null) return NotFound("User not found.");
+
+            return Ok(new
+            {
+                Username = user.UserName,
+                Email = user.Email,
+                Roles = await _userManager.GetRolesAsync(user)
+            });
+        }
 
         [HttpGet("get-all")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetAll()
+        // [Authorize(Roles = "admin")]
+        public async Task<IActionResult> GetAllUsers()
         {
-            var users = await _userRepo.GetAllAsync();
-            return Ok(users);
+            var users = await _userManager.Users.ToListAsync();
+            if (users == null || users.Count == 0) return NotFound("No users found.");
+
+            var userDtos = users.Select(user => new
+            {
+                Username = user.UserName,
+                Email = user.Email,
+                Roles = _userManager.GetRolesAsync(user).Result
+            }).ToList();
+
+            return Ok(userDtos);
         }
 
-        [HttpGet("get/{id:int}")]
-        [Authorize]
-        public async Task<IActionResult> GetById(int id)
+        [HttpPut("update/{username}")]
+        // [Authorize(Roles = "admin,active")]
+        public async Task<IActionResult> UpdateUser(string username, UpdateUserDto updateUserDto)
         {
-            var user = await _userRepo.GetByIdAsync(id);
+            var user = await _userManager.FindByNameAsync(username);
             if (user == null) return NotFound("User not found.");
-            return Ok(user);
+
+            // Cập nhật email nếu có thay đổi
+            if (!string.IsNullOrEmpty(updateUserDto.Email) && user.Email != updateUserDto.Email)
+            {
+                user.Email = updateUserDto.Email;
+            }
+
+            // Kiểm tra và thay đổi mật khẩu nếu có
+            if (!string.IsNullOrEmpty(updateUserDto.NewPassword))
+            {
+                // Kiểm tra mật khẩu mới có khớp với xác nhận không
+                if (updateUserDto.NewPassword != updateUserDto.ConfirmNewPassword)
+                {
+                    return BadRequest("New passwords do not match.");
+                }
+
+                // Kiểm tra mật khẩu hiện tại có chính xác không
+                var passwordCheck = await _userManager.CheckPasswordAsync(user, updateUserDto.CurrentPassword);
+                if (!passwordCheck)
+                {
+                    return BadRequest("Current password is incorrect.");
+                }
+
+                // Thực hiện thay đổi mật khẩu
+                var passwordChangeResult = await _userManager.ChangePasswordAsync(user, updateUserDto.CurrentPassword, updateUserDto.NewPassword);
+                if (!passwordChangeResult.Succeeded)
+                {
+                    return BadRequest(passwordChangeResult.Errors);
+                }
+            }
+
+            // Cập nhật thông tin người dùng
+            var result = await _userManager.UpdateAsync(user);
+            if (!result.Succeeded)
+            {
+                return BadRequest(result.Errors);
+            }
+
+            return Ok("User updated successfully.");
         }
 
-        [HttpPut("approve/{id:int}")]
-        [Authorize(Roles = "Admin")] 
-        public async Task<IActionResult> ApproveUser(int id)
+
+        [HttpDelete("delete/{username}")]
+        // [Authorize(Roles = "admin")]
+        public async Task<IActionResult> DeleteUser(string username)
         {
-            var updatedUser = await _userRepo.ApproveUserAsync(id);
-            if (updatedUser == null) return NotFound("User not found.");
-            return Ok(updatedUser);
+            var user = await _userManager.FindByNameAsync(username);
+            if (user == null) return NotFound("User not found.");
+
+            var result = await _userManager.DeleteAsync(user);
+
+            if (result.Succeeded)
+                return Ok("User deleted successfully.");
+            return BadRequest(result.Errors);
         }
 
-        [HttpPost("reset-password/{id:int}")]
-        [Authorize] 
-        public async Task<IActionResult> ResetPassword(int id, [FromBody] ResetPasswordDto resetPasswordDto)
+        [HttpPut("approve/{username}")]
+        //[Authorize(Roles = "admin")]
+        public async Task<IActionResult> ApproveUser(string username, [FromQuery] string role)
         {
-            var updatedUser = await _userRepo.ResetPasswordAsync(id, resetPasswordDto.NewPassword);
-            if (updatedUser == null) return NotFound("User not found.");
-            return Ok(updatedUser);
-        }
+            var user = await _userManager.FindByNameAsync(username);
+            if (user == null) return NotFound("User not found.");
 
-        [HttpPut("update/{id:int}")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> UpdateUser(int id, [FromBody] UpdateUserRequestDto updateUserDto)
-        {
-            var updatedUser = await _userRepo.UpdateAsync(id, updateUserDto);
-            if (updatedUser == null) return NotFound("User not found.");
-            return Ok(updatedUser);
-        }
+            if (role != "student" && role != "lecturer")
+            {
+                return BadRequest("Invalid role. Please specify 'student' or 'lecturer'.");
+            }
 
-        [HttpDelete("delete/{id:int}")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> DeleteUser(int id)
-        {
-            var isDeleted = await _userRepo.DeleteAsync(id);
-            if (!isDeleted) return NotFound("User not found.");
-            return NoContent();
+            await _userManager.AddToRoleAsync(user, role);
+            return Ok($"User {username} approved as {role}.");
         }
     }
 }

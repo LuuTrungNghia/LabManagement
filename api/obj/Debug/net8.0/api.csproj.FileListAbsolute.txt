@@ -7,6 +7,7 @@ D:\LabManagement\LabManagement\api\bin\Debug\net8.0\api.dll
 D:\LabManagement\LabManagement\api\bin\Debug\net8.0\api.pdb
 D:\LabManagement\LabManagement\api\bin\Debug\net8.0\Azure.Core.dll
 D:\LabManagement\LabManagement\api\bin\Debug\net8.0\Azure.Identity.dll
+D:\LabManagement\LabManagement\api\bin\Debug\net8.0\BCrypt.Net-Next.dll
 D:\LabManagement\LabManagement\api\bin\Debug\net8.0\Humanizer.dll
 D:\LabManagement\LabManagement\api\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
 D:\LabManagement\LabManagement\api\bin\Debug\net8.0\Microsoft.AspNetCore.Cryptography.Internal.dll
@@ -16,6 +17,7 @@ D:\LabManagement\LabManagement\api\bin\Debug\net8.0\Microsoft.AspNetCore.JsonPat
 D:\LabManagement\LabManagement\api\bin\Debug\net8.0\Microsoft.AspNetCore.Mvc.NewtonsoftJson.dll
 D:\LabManagement\LabManagement\api\bin\Debug\net8.0\Microsoft.AspNetCore.OpenApi.dll
 D:\LabManagement\LabManagement\api\bin\Debug\net8.0\Microsoft.Bcl.AsyncInterfaces.dll
+D:\LabManagement\LabManagement\api\bin\Debug\net8.0\Microsoft.Bcl.TimeProvider.dll
 D:\LabManagement\LabManagement\api\bin\Debug\net8.0\Microsoft.CodeAnalysis.dll
 D:\LabManagement\LabManagement\api\bin\Debug\net8.0\Microsoft.CodeAnalysis.CSharp.dll
 D:\LabManagement\LabManagement\api\bin\Debug\net8.0\Microsoft.CodeAnalysis.CSharp.Workspaces.dll
@@ -152,4 +154,3 @@ D:\LabManagement\LabManagement\api\obj\Debug\net8.0\refint\api.dll
 D:\LabManagement\LabManagement\api\obj\Debug\net8.0\api.pdb
 D:\LabManagement\LabManagement\api\obj\Debug\net8.0\api.genruntimeconfig.cache
 D:\LabManagement\LabManagement\api\obj\Debug\net8.0\ref\api.dll
-D:\LabManagement\LabManagement\api\bin\Debug\net8.0\BCrypt.Net-Next.dll

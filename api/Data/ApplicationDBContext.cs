@@ -1,17 +1,25 @@
-using System;
-using Microsoft.EntityFrameworkCore;
-using api.Models;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 
 namespace api.Data
 {
-    public class ApplicationDBContext : IdentityDbContext<User, IdentityRole<int>, int>
+    public class ApplicationDbContext : IdentityDbContext<IdentityUser>
     {
-        public ApplicationDBContext(DbContextOptions<ApplicationDBContext> dbContextOptions) : base(dbContextOptions) {}
 
-        public DbSet<Device> Devices { get; set; }
-        public DbSet<Lab> Labs { get; set; }
-        public DbSet<User> Users { get; set; }
-    }
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
+        {
+            
+        }
+        // public DbSet<Device> Devices { get; set; }
+        //public DbSet<DeviceBorrowingRequest> DeviceBorrowingRequests { get; set; }
+        // public DbSet<Lab> Labs { get; set; }
+        // public DbSet<LabBorrowingRequest> LabBorrowingRequests { get; set; }
+        // public DbSet<RoomBookingRequest> RoomBookingRequests { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder builder)
+        {
+            base.OnModelCreating(builder);
+        }
+    }   
 }
