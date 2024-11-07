@@ -1,9 +1,9 @@
-using api.Models;
+using Microsoft.AspNetCore.Identity;
 
 namespace api.Interfaces
 {
     public interface ITokenService
     {
-        string CreateToken(User user);
+        string CreateToken(IdentityUser user);
     }
 }
