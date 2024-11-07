@@ -93,7 +93,10 @@ namespace api.Migrations
                     Role = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     IsApproved = table.Column<bool>(type: "bit", nullable: false),
-                    Password = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Password = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    DateCreated = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    LastLogin = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    FailedLoginAttempts = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
