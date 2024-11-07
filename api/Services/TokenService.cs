@@ -24,7 +24,8 @@ namespace api.Services
             {
                 new Claim(JwtRegisteredClaimNames.NameId, user.Name),
                 new Claim("role", user.Role),
-                new Claim(JwtRegisteredClaimNames.Email, user.Email)
+                new Claim(JwtRegisteredClaimNames.Email, user.Email),
+                new Claim("isApproved", user.IsApproved.ToString())
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["JWT:SigningKey"]));

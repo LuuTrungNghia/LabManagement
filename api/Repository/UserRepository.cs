@@ -119,7 +119,12 @@ namespace api.Repositories
 
         public async Task<User> AuthenticateUserAsync(string username, string password)
         {
-            return await _context.Users.FirstOrDefaultAsync(u => u.Name == username && u.Password == HashPassword(password));
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Name == username);
+            if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.Password))
+            {
+                return null; // Authentication failed
+            }
+            return user;
         }
 
         private string HashPassword(string password) => BCrypt.Net.BCrypt.HashPassword(password);
