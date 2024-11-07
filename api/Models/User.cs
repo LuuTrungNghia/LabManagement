@@ -5,10 +5,13 @@ namespace api.Models
     public class User
     {
         public int Id { get; set; }
-        public string Name { get; set; }
-        public string Role { get; set; } 
-        public string Email { get; set; }
+        public required string Name { get; set; }
+        public required string Role { get; set; }
+        public required string Email { get; set; }
         public bool IsApproved { get; set; }
-        public string Password { get; set; } 
+        public required string Password { get; set; }
+        public DateTime DateCreated { get; set; } = DateTime.UtcNow;
+        public DateTime? LastLogin { get; set; }
+        public int FailedLoginAttempts { get; set; }
     }
 }

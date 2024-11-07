@@ -1,3 +1,9 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using api.Helper;
+using api.Models;
 using api.Dtos.Lab;
 
 namespace api.Interface

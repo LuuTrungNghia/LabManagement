@@ -2,6 +2,7 @@ using api.Data;
 using api.Dtos.Lab;
 using api.Helper;
 using api.Interface;
+using api.Interfaces;
 using api.Mappers;
 using Microsoft.AspNetCore.Mvc;
 

@@ -1,19 +1,100 @@
 using System.Threading.Tasks;
-using api.Dtos.User;
-using api.Interface;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using api.Dtos.User;
+using api.Interfaces;
+using api.Models;
 
 namespace api.Controllers
 {
-    [Route("api/v{v}/User")]
+    [Route("api/users")]
     [ApiController]
     public class UserController : ControllerBase
     {
         private readonly IUserRepository _userRepo;
+        private readonly ITokenService _tokenService;
+        private readonly ILogger<UserController> _logger;
 
-        public UserController(IUserRepository userRepo)
+        public UserController(IUserRepository userRepo, ITokenService tokenService, ILogger<UserController> logger)
         {
             _userRepo = userRepo;
+            _tokenService = tokenService;
+            _logger = logger;
+        }
+
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
+        {
+            if (string.IsNullOrWhiteSpace(loginDto.Username) || string.IsNullOrWhiteSpace(loginDto.Password))
+                return BadRequest("Username and password are required");
+
+            _logger.LogInformation($"Login attempt for user: {loginDto.Username}");
+
+            var user = await _userRepo.AuthenticateUserAsync(loginDto.Username, loginDto.Password);
+            if (user == null) return Unauthorized("Invalid credentials");
+
+            if (!user.IsApproved)
+            {
+                return Unauthorized("User is not approved.");
+            }
+
+            var token = _tokenService.CreateToken(user);
+
+            var userDto = new UserDto
+            {
+                Id = user.Id,
+                Name = user.Name,
+                Role = user.Role,
+                Email = user.Email,
+                IsApproved = user.IsApproved
+            };
+
+            return Ok(new LoginResponseDto 
+            { 
+                User = userDto, 
+                Token = token 
+            });
+        }
+
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
+        {
+            if (string.IsNullOrEmpty(registerDto.Role))
+            {
+                return BadRequest("Role is required.");
+            }
+
+            var existingUserByUsername = await _userRepo.GetByUsernameOrEmailAsync(registerDto.Username);
+            if (existingUserByUsername != null)
+            {
+                return BadRequest("Username or email already in use.");
+            }
+
+            var existingUserByEmail = await _userRepo.GetByUsernameOrEmailAsync(registerDto.Email);
+            if (existingUserByEmail != null)
+            {
+                return BadRequest("Username or email already in use.");
+            }
+
+            var createdUserDto = await _userRepo.CreateAsync(registerDto);
+
+            var userForToken = new User
+            {
+                Id = createdUserDto.Id,
+                Name = createdUserDto.Name,
+                Role = createdUserDto.Role,
+                Email = createdUserDto.Email,
+                IsApproved = createdUserDto.IsApproved,
+                Password = registerDto.Password
+            };
+
+            var token = _tokenService.CreateToken(userForToken);
+
+            return CreatedAtAction(nameof(GetById), new { id = createdUserDto.Id }, new 
+            {
+                User = createdUserDto,
+                Token = token
+            });
         }
 
         [HttpGet("get-all")]
@@ -27,54 +108,27 @@ namespace api.Controllers
         public async Task<IActionResult> GetById(int id)
         {
             var user = await _userRepo.GetByIdAsync(id);
-            if (user == null) return NotFound();
+            if (user == null) return NotFound("User not found.");
             return Ok(user);
-        }
-
-        [HttpPost("create")]
-        public async Task<IActionResult> Create([FromBody] CreateUserRequestDto userDto)
-        {
-            var user = await _userRepo.CreateAsync(userDto);
-            return CreatedAtAction(nameof(GetById), new { v = 1, id = user.Id }, user);
-        }
-
-        [HttpPut("update/{id:int}")]
-        public async Task<IActionResult> Update(int id, [FromBody] UpdateUserRequestDto userDto)
-        {
-            var updatedUser = await _userRepo.UpdateAsync(id, userDto);
-            if (updatedUser == null) return NotFound();
-            return Ok(updatedUser);
-        }
-
-        [HttpDelete("delete/{id:int}")]
-        public async Task<IActionResult> Delete(int id)
-        {
-            var success = await _userRepo.DeleteAsync(id);
-            if (!success) return NotFound();
-            return NoContent();
         }
 
         [HttpPut("approve/{id:int}")]
         public async Task<IActionResult> ApproveUser(int id)
         {
-            var user = await _userRepo.ApproveUserAsync(id);
-            if (user == null) return NotFound();
-            return Ok(user);
+            var updatedUser = await _userRepo.ApproveUserAsync(id);
+            if (updatedUser == null) return NotFound("User not found.");
+            return Ok(updatedUser);
         }
 
-        [HttpPut("reset-password/{id:int}")]
-        public async Task<IActionResult> ResetPassword(int id, [FromBody] string newPassword)
+        [HttpPost("reset-password/{id:int}")]
+        public async Task<IActionResult> ResetPassword(int id, [FromBody] ResetPasswordDto resetPasswordDto)
         {
-            var user = await _userRepo.ResetPasswordAsync(id, newPassword);
-            if (user == null) return NotFound();
+            if (string.IsNullOrEmpty(resetPasswordDto.NewPassword))
+                return BadRequest("New password is required.");
+            
+            var user = await _userRepo.ResetPasswordAsync(id, resetPasswordDto.NewPassword);
+            if (user == null) return NotFound("User not found.");
             return Ok(user);
-        }
-
-        [HttpPost("import")]
-        public async Task<IActionResult> ImportUsers([FromBody] IEnumerable<CreateUserRequestDto> users)
-        {
-            var importedUsers = await _userRepo.ImportUsersAsync(users);
-            return Ok(importedUsers);
         }
     }
 }
