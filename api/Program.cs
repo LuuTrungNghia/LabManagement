@@ -34,9 +34,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["JWT:Issuer"],  // Sử dụng cấu hình từ appsettings.json
-            ValidAudience = builder.Configuration["JWT:Audience"],  // Sử dụng cấu hình từ appsettings.json
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:SigningKey"]))  // Sử dụng cấu hình từ appsettings.json
+            ValidIssuer = builder.Configuration["JWT:Issuer"],  // Đảm bảo khớp với cấu hình trong appsettings.json
+            ValidAudience = builder.Configuration["JWT:Audience"],  // Đảm bảo khớp với cấu hình trong appsettings.json
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:SigningKey"]))  // Đảm bảo khớp với cấu hình trong appsettings.json
         };
     });
 
@@ -75,9 +75,6 @@ builder.Services.AddSwaggerGen(option =>
         }
     });
 });
-
-// Configure application services for any additional functionalities you need.
-// You can add more services like for role management, email services, etc.
 
 var app = builder.Build();
 
