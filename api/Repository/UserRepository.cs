@@ -1,28 +1,56 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using api.Data;
+using Microsoft.EntityFrameworkCore;
 using api.Dtos.User;
 using api.Interfaces;
 using api.Models;
-using Microsoft.EntityFrameworkCore;
+using api.Data;
+using Microsoft.AspNetCore.Identity;
 
 namespace api.Repositories
 {
     public class UserRepository : IUserRepository
     {
         private readonly ApplicationDBContext _context;
+        private readonly UserManager<User> _userManager;
 
-        public UserRepository(ApplicationDBContext context)
+        public UserRepository(ApplicationDBContext context, UserManager<User> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
-        public async Task<User> GetByUsernameOrEmailAsync(string usernameOrEmail)
+        public async Task<User> AuthenticateUserAsync(string usernameOrEmail, string password)
         {
             var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.Name.ToLower() == usernameOrEmail.ToLower() || u.Email.ToLower() == usernameOrEmail.ToLower());
+                .FirstOrDefaultAsync(u => u.UserName.ToLower() == usernameOrEmail.ToLower() || u.Email.ToLower() == usernameOrEmail.ToLower());
+
+            if (user == null || !(await _userManager.CheckPasswordAsync(user, password)))
+            {
+                return null;
+            }
+
             return user;
+        }
+
+        public async Task<UserDto> GetByUsernameOrEmailAsync(string usernameOrEmail)
+        {
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.UserName.ToLower() == usernameOrEmail.ToLower() || u.Email.ToLower() == usernameOrEmail.ToLower());
+
+            if (user == null)
+            {
+                return null;
+            }
+
+            return new UserDto
+            {
+                Id = user.Id,
+                Name = user.Name,
+                Role = user.Role,
+                Email = user.Email,
+                IsApproved = user.IsApproved
+            };
         }
 
         public async Task<IEnumerable<UserDto>> GetAllAsync() =>
@@ -36,24 +64,22 @@ namespace api.Repositories
 
         public async Task<UserDto> CreateAsync(RegisterDto registerDto)
         {
-            if (string.IsNullOrEmpty(registerDto.Role)) 
-            {
-                registerDto.Role = "User";
-            }
+            string role = "User";
 
-            var hashedPassword = HashPassword(registerDto.Password);
-
-            var user = new User 
+            var user = new User
             { 
-                Name = registerDto.Username, 
+                UserName = registerDto.Username, 
                 Email = registerDto.Email, 
-                Password = hashedPassword,
-                Role = registerDto.Role,
+                Role = role, 
                 IsApproved = false
             };
 
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
+            var result = await _userManager.CreateAsync(user, registerDto.Password);
+
+            if (!result.Succeeded)
+            {
+                return null; // Handle errors if needed
+            }
 
             return new UserDto 
             { 
@@ -65,30 +91,6 @@ namespace api.Repositories
             };
         }
 
-        public async Task<UserDto> UpdateAsync(int id, UpdateUserRequestDto updateUserDto)
-        {
-            var user = await _context.Users.FindAsync(id);
-            if (user == null) return null;
-
-            user.Name = updateUserDto.Name;
-            user.Role = updateUserDto.Role;
-            user.Email = updateUserDto.Email;
-            user.IsApproved = updateUserDto.IsApproved;
-            await _context.SaveChangesAsync();
-
-            return new UserDto { Id = user.Id, Name = user.Name, Role = user.Role, Email = user.Email, IsApproved = user.IsApproved };
-        }
-
-        public async Task<bool> DeleteAsync(int id)
-        {
-            var user = await _context.Users.FindAsync(id);
-            if (user == null) return false;
-
-            _context.Users.Remove(user);
-            await _context.SaveChangesAsync();
-            return true;
-        }
-
         public async Task<UserDto> ApproveUserAsync(int id)
         {
             var user = await _context.Users.FindAsync(id);
@@ -96,7 +98,15 @@ namespace api.Repositories
 
             user.IsApproved = true;
             await _context.SaveChangesAsync();
-            return new UserDto { Id = user.Id, Name = user.Name, Role = user.Role, Email = user.Email, IsApproved = user.IsApproved };
+
+            return new UserDto
+            {
+                Id = user.Id,
+                Name = user.Name,
+                Role = user.Role,
+                Email = user.Email,
+                IsApproved = user.IsApproved
+            };
         }
 
         public async Task<UserDto> ResetPasswordAsync(int id, string newPassword)
@@ -104,29 +114,59 @@ namespace api.Repositories
             var user = await _context.Users.FindAsync(id);
             if (user == null) return null;
 
-            user.Password = HashPassword(newPassword);
-            await _context.SaveChangesAsync();
+            var resetResult = await _userManager.RemovePasswordAsync(user);
+            if (!resetResult.Succeeded) return null;
+
+            var passwordResult = await _userManager.AddPasswordAsync(user, newPassword);
+            if (!passwordResult.Succeeded) return null;
+
             return new UserDto { Id = user.Id, Name = user.Name, Role = user.Role, Email = user.Email, IsApproved = user.IsApproved };
         }
 
-        public async Task<IEnumerable<UserDto>> ImportUsersAsync(IEnumerable<CreateUserRequestDto> userDtos)
+        // Implement UpdateAsync
+        public async Task<UserDto> UpdateAsync(int id, UpdateUserRequestDto updateUserRequestDto)
         {
-            var users = userDtos.Select(dto => new User { Name = dto.Name, Role = dto.Role, Email = dto.Email, Password = HashPassword(dto.Password), IsApproved = false });
-            _context.Users.AddRange(users);
-            await _context.SaveChangesAsync();
-            return users.Select(u => new UserDto { Id = u.Id, Name = u.Name, Role = u.Role, Email = u.Email, IsApproved = u.IsApproved });
-        }
-
-        public async Task<User> AuthenticateUserAsync(string username, string password)
-        {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Name == username);
-            if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.Password))
+            var user = await _context.Users.FindAsync(id);
+            if (user == null)
             {
-                return null; // Authentication failed
+                return null; // Handle user not found
             }
-            return user;
+
+            // Update user properties from the DTO
+            user.Name = updateUserRequestDto.Name ?? user.Name;  // Use existing values if null
+            user.Email = updateUserRequestDto.Email ?? user.Email;
+            user.Role = updateUserRequestDto.Role ?? user.Role;
+            user.IsApproved = updateUserRequestDto.IsApproved;
+
+            var result = await _userManager.UpdateAsync(user);
+            if (!result.Succeeded)
+            {
+                return null; // Handle errors in update
+            }
+
+            return new UserDto
+            {
+                Id = user.Id,
+                Name = user.Name,
+                Role = user.Role,
+                Email = user.Email,
+                IsApproved = user.IsApproved
+            };
         }
 
-        private string HashPassword(string password) => BCrypt.Net.BCrypt.HashPassword(password);
+        // Implement DeleteAsync
+        public async Task<bool> DeleteAsync(int id)
+        {
+            var user = await _context.Users.FindAsync(id);
+            if (user == null)
+            {
+                return false; // Handle user not found
+            }
+
+            _context.Users.Remove(user);
+            var result = await _context.SaveChangesAsync();
+
+            return result > 0;  // Returns true if delete was successful, false if no rows were affected
+        }
     }
 }

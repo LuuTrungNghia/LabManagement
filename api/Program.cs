@@ -24,6 +24,11 @@ builder.Services.AddControllers().AddNewtonsoftJson(options =>
 builder.Services.AddDbContext<ApplicationDBContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// Register Identity services (UserManager and RoleManager).
+builder.Services.AddIdentity<User, IdentityRole>()
+    .AddEntityFrameworkStores<ApplicationDBContext>()
+    .AddDefaultTokenProviders();  // This is necessary for UserManager and RoleManager to work
+
 // Add authentication and authorization services.
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -34,9 +39,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["JWT:Issuer"],  // Đảm bảo khớp với cấu hình trong appsettings.json
-            ValidAudience = builder.Configuration["JWT:Audience"],  // Đảm bảo khớp với cấu hình trong appsettings.json
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:SigningKey"]))  // Đảm bảo khớp với cấu hình trong appsettings.json
+            ValidIssuer = builder.Configuration["JWT:Issuer"],  // Ensure this matches with your appsettings.json
+            ValidAudience = builder.Configuration["JWT:Audience"],  // Ensure this matches with your appsettings.json
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:SigningKey"]))  // Ensure this matches with your appsettings.json
         };
     });
 
@@ -90,6 +95,15 @@ if (app.Environment.IsDevelopment())
 
 app.UseAuthentication(); // Add authentication middleware
 app.UseAuthorization();  // Add authorization middleware
+
+// Initialize the database and create the admin account
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var userManager = services.GetRequiredService<UserManager<User>>();
+    var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+    await SeedData.Initialize(services, userManager, roleManager); // Initialize admin account
+}
 
 app.MapControllers();
 
