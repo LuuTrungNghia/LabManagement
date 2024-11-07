@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
 using api.Dtos.User;
 using api.Interfaces;
@@ -59,11 +60,6 @@ namespace api.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
         {
-            if (string.IsNullOrEmpty(registerDto.Role))
-            {
-                return BadRequest("Role is required.");
-            }
-
             var existingUserByUsername = await _userRepo.GetByUsernameOrEmailAsync(registerDto.Username);
             if (existingUserByUsername != null)
             {
@@ -84,8 +80,7 @@ namespace api.Controllers
                 Name = createdUserDto.Name,
                 Role = createdUserDto.Role,
                 Email = createdUserDto.Email,
-                IsApproved = createdUserDto.IsApproved,
-                Password = registerDto.Password
+                IsApproved = createdUserDto.IsApproved
             };
 
             var token = _tokenService.CreateToken(userForToken);
@@ -97,7 +92,9 @@ namespace api.Controllers
             });
         }
 
+
         [HttpGet("get-all")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAll()
         {
             var users = await _userRepo.GetAllAsync();
@@ -105,6 +102,7 @@ namespace api.Controllers
         }
 
         [HttpGet("get/{id:int}")]
+        [Authorize]
         public async Task<IActionResult> GetById(int id)
         {
             var user = await _userRepo.GetByIdAsync(id);
@@ -113,6 +111,7 @@ namespace api.Controllers
         }
 
         [HttpPut("approve/{id:int}")]
+        [Authorize(Roles = "Admin")] 
         public async Task<IActionResult> ApproveUser(int id)
         {
             var updatedUser = await _userRepo.ApproveUserAsync(id);
@@ -121,14 +120,30 @@ namespace api.Controllers
         }
 
         [HttpPost("reset-password/{id:int}")]
+        [Authorize] 
         public async Task<IActionResult> ResetPassword(int id, [FromBody] ResetPasswordDto resetPasswordDto)
         {
-            if (string.IsNullOrEmpty(resetPasswordDto.NewPassword))
-                return BadRequest("New password is required.");
-            
-            var user = await _userRepo.ResetPasswordAsync(id, resetPasswordDto.NewPassword);
-            if (user == null) return NotFound("User not found.");
-            return Ok(user);
+            var updatedUser = await _userRepo.ResetPasswordAsync(id, resetPasswordDto.NewPassword);
+            if (updatedUser == null) return NotFound("User not found.");
+            return Ok(updatedUser);
+        }
+
+        [HttpPut("update/{id:int}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> UpdateUser(int id, [FromBody] UpdateUserRequestDto updateUserDto)
+        {
+            var updatedUser = await _userRepo.UpdateAsync(id, updateUserDto);
+            if (updatedUser == null) return NotFound("User not found.");
+            return Ok(updatedUser);
+        }
+
+        [HttpDelete("delete/{id:int}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> DeleteUser(int id)
+        {
+            var isDeleted = await _userRepo.DeleteAsync(id);
+            if (!isDeleted) return NotFound("User not found.");
+            return NoContent();
         }
     }
 }
