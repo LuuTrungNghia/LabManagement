@@ -3,6 +3,7 @@ using api.Data;
 using api.Interfaces;
 using api.Repositories;
 using api.Services;
+using api.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -24,7 +25,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Add Identity with default IdentityUser
-builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
     options.Password.RequireDigit = true;
     options.Password.RequireLowercase = true;
@@ -81,11 +82,11 @@ builder.Services.AddSwaggerGen(options =>
 });
 builder.Services.AddAuthorization();
 
-
 builder.Services.AddScoped<IDeviceRepository, DeviceRepository>();
 builder.Services.AddScoped<ILabRepository, LabRepository>();
-builder.Services.AddScoped<RoleManager<IdentityRole>>();
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IDeviceBorrowingRepository, DeviceBorrowingRepository>();
+builder.Services.AddScoped<RoleManager<IdentityRole>>();
 // Build the application
 var app = builder.Build();
 
@@ -105,7 +106,7 @@ app.MapControllers();
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
-    var userManager = services.GetRequiredService<UserManager<IdentityUser>>();
+    var userManager = services.GetRequiredService<UserManager<ApplicationUser>>(); // Sử dụng đúng UserManager<ApplicationUser>
     await SeedData.Initialize(services, userManager); // Seed roles and admin user here
 }
 

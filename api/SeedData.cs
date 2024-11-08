@@ -1,38 +1,44 @@
 using Microsoft.AspNetCore.Identity;
-using System.Linq;
-using System.Threading.Tasks;
+using api.Models;
 
 namespace api
 {
     public static class SeedData
     {
-        public static async Task Initialize(IServiceProvider serviceProvider, UserManager<IdentityUser> userManager)
+        public static async Task Initialize(IServiceProvider services, UserManager<ApplicationUser> userManager)
         {
-            var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-            var roles = new[] { "user", "admin" };
+            var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
 
-            foreach (var role in roles)
+            // Create roles if they do not exist
+            string[] roleNames = { "admin", "user" };  // Add any other roles as needed
+            foreach (var roleName in roleNames)
             {
-                var roleExist = await roleManager.RoleExistsAsync(role);
+                var roleExist = await roleManager.RoleExistsAsync(roleName);
                 if (!roleExist)
                 {
-                    await roleManager.CreateAsync(new IdentityRole(role));
+                    await roleManager.CreateAsync(new IdentityRole(roleName));
                 }
             }
 
-            var adminUser = await userManager.FindByNameAsync("admin");
-            if (adminUser == null)
-            {
-                adminUser = new IdentityUser { UserName = "admin", Email = "admin@example.com" };
-                var createResult = await userManager.CreateAsync(adminUser, "Admin@123");
+            // Check if the admin user exists
+            var user = await userManager.FindByEmailAsync("admin@example.com");
 
-                if (createResult.Succeeded)
+            if (user == null)
+            {
+                user = new ApplicationUser
                 {
-                    await userManager.AddToRoleAsync(adminUser, "admin");
-                }
-                else
+                    UserName = "admin@example.com",
+                    Email = "admin@example.com",
+                    FullName = "Admin User",
+                    Avatar = "default-avatar.png",
+                    DateOfBirth = DateTime.Parse("1990-01-01"),
+                    Gender = "Male"
+                };
+
+                var result = await userManager.CreateAsync(user, "Admin@123");
+                if (result.Succeeded)
                 {
-                    throw new Exception("Failed to create admin user: " + string.Join(", ", createResult.Errors.Select(e => e.Description)));
+                    await userManager.AddToRoleAsync(user, "admin");  // Add user to the admin role
                 }
             }
         }
