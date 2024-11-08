@@ -1,5 +1,3 @@
-using System.Linq;
-using System.Threading.Tasks;
 using api.Dtos.User;
 using api.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -37,7 +35,8 @@ namespace api.Controllers
             if (result.Succeeded)
             {
                 await _userManager.AddToRoleAsync(user, "user");
-                var token = _tokenService.CreateToken(user);
+                var roles = await _userManager.GetRolesAsync(user);
+                var token = _tokenService.CreateToken(user, roles);
 
                 return Ok(new
                 {
@@ -46,7 +45,6 @@ namespace api.Controllers
                     Token = token
                 });
             }
-
             return BadRequest(result.Errors);
         }
 
@@ -61,8 +59,8 @@ namespace api.Controllers
 
             var result = await _signinManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
             if (!result.Succeeded) return Unauthorized("Invalid password.");
-
-            var token = _tokenService.CreateToken(user);
+            var roles = await _userManager.GetRolesAsync(user);
+            var token = _tokenService.CreateToken(user, roles);
 
             return Ok(new
             {
@@ -72,8 +70,8 @@ namespace api.Controllers
             });
         }
 
-        [HttpGet("get/{username}")]
-        // [Authorize(Roles = "admin,active")]
+        [HttpGet("get/{username}")]        
+        //[Authorize(Roles = "admin,active")]
         public async Task<IActionResult> GetUser(string username)
         {
             var user = await _userManager.FindByNameAsync(username);
@@ -88,7 +86,7 @@ namespace api.Controllers
         }
 
         [HttpGet("get-all")]
-        // [Authorize(Roles = "admin")]
+        //[Authorize(Roles = "admin")]
         public async Task<IActionResult> GetAllUsers()
         {
             var users = await _userManager.Users.ToListAsync();
@@ -105,64 +103,46 @@ namespace api.Controllers
         }
 
         [HttpPut("update/{username}")]
-        // [Authorize(Roles = "admin,active")]
+        [Authorize(Roles = "admin,active")]
         public async Task<IActionResult> UpdateUser(string username, UpdateUserDto updateUserDto)
         {
             var user = await _userManager.FindByNameAsync(username);
             if (user == null) return NotFound("User not found.");
 
-            // Cập nhật email nếu có thay đổi
+            // Update email if necessary
             if (!string.IsNullOrEmpty(updateUserDto.Email) && user.Email != updateUserDto.Email)
             {
                 user.Email = updateUserDto.Email;
             }
 
-            // Kiểm tra và thay đổi mật khẩu nếu có
+            // Password change handling
             if (!string.IsNullOrEmpty(updateUserDto.NewPassword))
             {
-                // Kiểm tra mật khẩu mới có khớp với xác nhận không
                 if (updateUserDto.NewPassword != updateUserDto.ConfirmNewPassword)
-                {
                     return BadRequest("New passwords do not match.");
-                }
 
-                // Kiểm tra mật khẩu hiện tại có chính xác không
                 var passwordCheck = await _userManager.CheckPasswordAsync(user, updateUserDto.CurrentPassword);
-                if (!passwordCheck)
-                {
-                    return BadRequest("Current password is incorrect.");
-                }
+                if (!passwordCheck) return BadRequest("Current password is incorrect.");
 
-                // Thực hiện thay đổi mật khẩu
                 var passwordChangeResult = await _userManager.ChangePasswordAsync(user, updateUserDto.CurrentPassword, updateUserDto.NewPassword);
-                if (!passwordChangeResult.Succeeded)
-                {
-                    return BadRequest(passwordChangeResult.Errors);
-                }
+                if (!passwordChangeResult.Succeeded) return BadRequest(passwordChangeResult.Errors);
             }
 
-            // Cập nhật thông tin người dùng
             var result = await _userManager.UpdateAsync(user);
-            if (!result.Succeeded)
-            {
-                return BadRequest(result.Errors);
-            }
+            if (!result.Succeeded) return BadRequest(result.Errors);
 
             return Ok("User updated successfully.");
         }
 
-
         [HttpDelete("delete/{username}")]
-        // [Authorize(Roles = "admin")]
+        //[Authorize(Roles = "admin")]
         public async Task<IActionResult> DeleteUser(string username)
         {
             var user = await _userManager.FindByNameAsync(username);
             if (user == null) return NotFound("User not found.");
 
             var result = await _userManager.DeleteAsync(user);
-
-            if (result.Succeeded)
-                return Ok("User deleted successfully.");
+            if (result.Succeeded) return Ok("User deleted successfully.");
             return BadRequest(result.Errors);
         }
 
@@ -174,9 +154,7 @@ namespace api.Controllers
             if (user == null) return NotFound("User not found.");
 
             if (role != "student" && role != "lecturer")
-            {
                 return BadRequest("Invalid role. Please specify 'student' or 'lecturer'.");
-            }
 
             await _userManager.AddToRoleAsync(user, role);
             return Ok($"User {username} approved as {role}.");

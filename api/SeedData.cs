@@ -9,8 +9,8 @@ namespace api
         public static async Task Initialize(IServiceProvider serviceProvider, UserManager<IdentityUser> userManager)
         {
             var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+            var roles = new[] { "user", "admin" };
 
-            var roles = new[] { "user", "active", "admin" };
             foreach (var role in roles)
             {
                 var roleExist = await roleManager.RoleExistsAsync(role);
@@ -25,7 +25,7 @@ namespace api
             {
                 adminUser = new IdentityUser { UserName = "admin", Email = "admin@example.com" };
                 var createResult = await userManager.CreateAsync(adminUser, "Admin@123");
-                    
+
                 if (createResult.Succeeded)
                 {
                     await userManager.AddToRoleAsync(adminUser, "admin");

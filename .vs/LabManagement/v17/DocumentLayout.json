@@ -1,0 +1,140 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\LabManagement\\LabManagement\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{974E807A-BC2A-4D5E-984D-1444F5004828}|api\\api.csproj|d:\\labmanagement\\labmanagement\\api\\services\\tokenservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{974E807A-BC2A-4D5E-984D-1444F5004828}|api\\api.csproj|solutionrelative:api\\services\\tokenservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{974E807A-BC2A-4D5E-984D-1444F5004828}|api\\api.csproj|d:\\labmanagement\\labmanagement\\api\\interface\\itokenservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{974E807A-BC2A-4D5E-984D-1444F5004828}|api\\api.csproj|solutionrelative:api\\interface\\itokenservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{974E807A-BC2A-4D5E-984D-1444F5004828}|api\\api.csproj|d:\\labmanagement\\labmanagement\\api\\interface\\ilabrespository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{974E807A-BC2A-4D5E-984D-1444F5004828}|api\\api.csproj|solutionrelative:api\\interface\\ilabrespository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{974E807A-BC2A-4D5E-984D-1444F5004828}|api\\api.csproj|d:\\labmanagement\\labmanagement\\api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{974E807A-BC2A-4D5E-984D-1444F5004828}|api\\api.csproj|solutionrelative:api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{974E807A-BC2A-4D5E-984D-1444F5004828}|api\\api.csproj|d:\\labmanagement\\labmanagement\\api\\api.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{974E807A-BC2A-4D5E-984D-1444F5004828}|api\\api.csproj|solutionrelative:api\\api.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{974E807A-BC2A-4D5E-984D-1444F5004828}|api\\api.csproj|d:\\labmanagement\\labmanagement\\api\\controller\\usercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{974E807A-BC2A-4D5E-984D-1444F5004828}|api\\api.csproj|solutionrelative:api\\controller\\usercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 1022,
+          "SelectedChildIndex": 2,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{3ae79031-e1bc-11d0-8f78-00a0c9110057}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "TokenService.cs",
+              "DocumentMoniker": "D:\\LabManagement\\LabManagement\\api\\Services\\TokenService.cs",
+              "RelativeDocumentMoniker": "api\\Services\\TokenService.cs",
+              "ToolTip": "D:\\LabManagement\\LabManagement\\api\\Services\\TokenService.cs",
+              "RelativeToolTip": "api\\Services\\TokenService.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAABAAAAAJAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-11-08T05:17:51.298Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "ITokenService.cs",
+              "DocumentMoniker": "D:\\LabManagement\\LabManagement\\api\\Interface\\ITokenService.cs",
+              "RelativeDocumentMoniker": "api\\Interface\\ITokenService.cs",
+              "ToolTip": "D:\\LabManagement\\LabManagement\\api\\Interface\\ITokenService.cs",
+              "RelativeToolTip": "api\\Interface\\ITokenService.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-11-08T05:17:29.15Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "ILabRespository.cs",
+              "DocumentMoniker": "D:\\LabManagement\\LabManagement\\api\\Interface\\ILabRespository.cs",
+              "RelativeDocumentMoniker": "api\\Interface\\ILabRespository.cs",
+              "ToolTip": "D:\\LabManagement\\LabManagement\\api\\Interface\\ILabRespository.cs",
+              "RelativeToolTip": "api\\Interface\\ILabRespository.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-11-08T05:17:26.575Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "Program.cs",
+              "DocumentMoniker": "D:\\LabManagement\\LabManagement\\api\\Program.cs",
+              "RelativeDocumentMoniker": "api\\Program.cs",
+              "ToolTip": "D:\\LabManagement\\LabManagement\\api\\Program.cs",
+              "RelativeToolTip": "api\\Program.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAIAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-11-08T05:11:59.445Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "api",
+              "DocumentMoniker": "D:\\LabManagement\\LabManagement\\api\\api.csproj",
+              "RelativeDocumentMoniker": "api\\api.csproj",
+              "ToolTip": "D:\\LabManagement\\LabManagement\\api\\api.csproj",
+              "RelativeToolTip": "api\\api.csproj",
+              "ViewState": "AQIAAAkAAAAAAAAAAAAAABkAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2024-11-08T05:09:42.261Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "UserController.cs",
+              "DocumentMoniker": "D:\\LabManagement\\LabManagement\\api\\Controller\\UserController.cs",
+              "RelativeDocumentMoniker": "api\\Controller\\UserController.cs",
+              "ToolTip": "D:\\LabManagement\\LabManagement\\api\\Controller\\UserController.cs",
+              "RelativeToolTip": "api\\Controller\\UserController.cs",
+              "ViewState": "AQIAAEEAAAAAAAAAAAAgwE4AAAAIAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-11-08T05:07:40.164Z",
+              "EditorCaption": ""
+            }
+          ]
+        },
+        {
+          "DockedWidth": 676,
+          "SelectedChildIndex": -1,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:4:0:{d212f56b-c48a-434c-a121-1c5d80b59b9f}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

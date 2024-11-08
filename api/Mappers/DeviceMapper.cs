@@ -1,47 +1,31 @@
 using api.Dtos.Device;
 using api.Models;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace api.Mappers
 {
     public static class DeviceMappers
     {
-        // Map Device model to DeviceDto
-        public static DeviceDto ToDeviceDto(this Device device)
+        public static DeviceDto ToDeviceDto(this Device device) => new DeviceDto
         {
-            return new DeviceDto
-            {
-                Id = device.Id,
-                DeviceName = device.DeviceName,
-                Quantity = device.Quantity,
-                DeviceStatus = device.DeviceStatus
-            };
-        }
+            Id = device.Id,
+            DeviceName = device.DeviceName,
+            Quantity = device.Quantity,
+            DeviceStatus = device.DeviceStatus.ToString()
+        };
 
-        // Map CreateDeviceRequestDto to Device model
-        public static Device ToDeviceFromCreateDto(this CreateDeviceRequestDto deviceDto)
+        public static Device ToDevice(this CreateDeviceRequestDto dto) => new Device
         {
-            return new Device
-            {
-                DeviceName = deviceDto.DeviceName,
-                Quantity = deviceDto.Quantity,
-                DeviceStatus = "Good" // Default to "Good" if not specified
-            };
-        }
+            DeviceName = dto.DeviceName,
+            Quantity = dto.Quantity,
+            DeviceStatus = DeviceStatus.Good
+        };
 
-        // Map UpdateDeviceRequestDto to Device model (for updating existing devices)
-        public static void UpdateDeviceFromDto(this Device existingDevice, UpdateDeviceRequestDto deviceDto)
+        public static Device ToDevice(this UpdateDeviceRequestDto dto, Device device)
         {
-            existingDevice.DeviceName = deviceDto.DeviceName;
-            existingDevice.Quantity = deviceDto.Quantity;
-            existingDevice.DeviceStatus = string.IsNullOrEmpty(deviceDto.DeviceStatus) ? existingDevice.DeviceStatus : deviceDto.DeviceStatus;
-        }
-
-        // Map a list of Device models to a list of DeviceDto
-        public static List<DeviceDto> ToDeviceDtoList(this IEnumerable<Device> devices)
-        {
-            return devices.Select(device => device.ToDeviceDto()).ToList();
+            device.DeviceName = dto.DeviceName;
+            device.Quantity = dto.Quantity;
+            device.DeviceStatus = Enum.Parse<DeviceStatus>(dto.DeviceStatus);
+            return device;
         }
     }
 }
