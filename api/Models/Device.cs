@@ -1,17 +1,17 @@
-// using System;
-// using System.Collections.Generic;
-// using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-// namespace api.Models
-// {
-//     public class Device
-//     {
-//         public int Id { get; set; }
-//         [Required, StringLength(100)] public string DeviceName { get; set; }
-//         public string DeviceType { get; set; }
-//         public int Quantity { get; set; }
-//         public string DeviceStatus { get; set; }
-//         public bool IsAvailable { get; set; }
-//         [Required] public DateTime DatePurchased { get; set; }
-//     }
-// }
+namespace api.Models
+{
+    [Table("Devices")]
+    public class Device
+    {
+        public int Id { get; set; }
+        [Required]
+        public string DeviceName { get; set; } = string.Empty;
+        [Required]
+        public int Quantity { get; set; }
+        [Required]
+        public string DeviceStatus { get; set; } = "Good"; // Tình trạng thiết bị (Good, Broken, Borrowed, Available)
+    }
+}
