@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace api.Data
 {
-    public class ApplicationDbContext : IdentityDbContext<IdentityUser>
+    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
@@ -13,7 +13,7 @@ namespace api.Data
             
         }
         public DbSet<Device> Devices { get; set; }
-        //public DbSet<DeviceBorrowingRequest> DeviceBorrowingRequests { get; set; }
+        public DbSet<DeviceBorrowing> DeviceBorrowings{ get; set; }
         public DbSet<Lab> Labs { get; set; }
         // public DbSet<LabBorrowingRequest> LabBorrowingRequests { get; set; }
         // public DbSet<RoomBookingRequest> RoomBookingRequests { get; set; }

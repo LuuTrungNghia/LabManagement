@@ -1,5 +1,6 @@
 using api.Dtos.User;
 using api.Interfaces;
+using api.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -11,11 +12,11 @@ namespace api.Controllers
     [ApiController]
     public class UserController : ControllerBase
     {
-        private readonly UserManager<IdentityUser> _userManager;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly ITokenService _tokenService;
-        private readonly SignInManager<IdentityUser> _signinManager;
+        private readonly SignInManager<ApplicationUser> _signinManager;
 
-        public UserController(UserManager<IdentityUser> userManager, ITokenService tokenService, SignInManager<IdentityUser> signInManager)
+        public UserController(UserManager<ApplicationUser> userManager, ITokenService tokenService, SignInManager<ApplicationUser> signInManager)
         {
             _userManager = userManager;
             _tokenService = tokenService;
@@ -25,10 +26,14 @@ namespace api.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegisterUserDto registerDto)
         {
-            var user = new IdentityUser
+            var user = new ApplicationUser
             {
                 UserName = registerDto.Username,
-                Email = registerDto.Email
+                Email = registerDto.Email,
+                FullName = registerDto.FullName,
+                Avatar = registerDto.Avatar,
+                DateOfBirth = registerDto.DateOfBirth,
+                Gender = registerDto.Gender
             };
 
             var result = await _userManager.CreateAsync(user, registerDto.Password);
@@ -42,13 +47,18 @@ namespace api.Controllers
                 {
                     Username = user.UserName,
                     Email = user.Email,
+                    Fullname = user.FullName,
+                    Avatar = user.Avatar,
+                    DateOfBirth = user.DateOfBirth,
+                    Gender = user.Gender,
                     Token = token
                 });
             }
             return BadRequest(result.Errors);
         }
 
-        [HttpPost("login")]
+
+        [HttpPost("login")]        
         public async Task<IActionResult> Login(LoginUserDto loginDto)
         {
             if (!ModelState.IsValid)
@@ -70,20 +80,24 @@ namespace api.Controllers
             });
         }
 
-        [HttpGet("get/{username}")]        
-        //[Authorize(Roles = "admin,active")]
+        [HttpGet("get/{username}")]
         public async Task<IActionResult> GetUser(string username)
         {
-            var user = await _userManager.FindByNameAsync(username);
+            var user = await _userManager.FindByNameAsync(username) as ApplicationUser;
             if (user == null) return NotFound("User not found.");
 
             return Ok(new
             {
                 Username = user.UserName,
                 Email = user.Email,
+                FullName = user.FullName,
+                Avatar = user.Avatar,
+                DateOfBirth = user.DateOfBirth,
+                Gender = user.Gender,
                 Roles = await _userManager.GetRolesAsync(user)
             });
         }
+
 
         [HttpGet("get-all")]
         //[Authorize(Roles = "admin")]
@@ -96,6 +110,10 @@ namespace api.Controllers
             {
                 Username = user.UserName,
                 Email = user.Email,
+                FullName = user.FullName,
+                Avatar = user.Avatar,
+                DateOfBirth = user.DateOfBirth,
+                Gender = user.Gender,
                 Roles = _userManager.GetRolesAsync(user).Result
             }).ToList();
 
@@ -103,19 +121,39 @@ namespace api.Controllers
         }
 
         [HttpPut("update/{username}")]
-        [Authorize(Roles = "admin,active")]
+        //[Authorize(Roles = "admin,active")]
         public async Task<IActionResult> UpdateUser(string username, UpdateUserDto updateUserDto)
         {
             var user = await _userManager.FindByNameAsync(username);
             if (user == null) return NotFound("User not found.");
 
-            // Update email if necessary
+            // Cập nhật email nếu cần
             if (!string.IsNullOrEmpty(updateUserDto.Email) && user.Email != updateUserDto.Email)
             {
                 user.Email = updateUserDto.Email;
             }
 
-            // Password change handling
+            if (!string.IsNullOrEmpty(updateUserDto.Fullname))
+            {
+                user.FullName = updateUserDto.Fullname;
+            }
+
+            if (!string.IsNullOrEmpty(updateUserDto.Avatar))
+            {
+                user.Avatar = updateUserDto.Avatar;
+            }
+
+            if (updateUserDto.DateOfBirth.HasValue)
+            {
+                user.DateOfBirth = updateUserDto.DateOfBirth.Value;
+            }
+
+            if (!string.IsNullOrEmpty(updateUserDto.Gender))
+            {
+                user.Gender = updateUserDto.Gender;
+            }
+
+            // Xử lý thay đổi mật khẩu nếu có
             if (!string.IsNullOrEmpty(updateUserDto.NewPassword))
             {
                 if (updateUserDto.NewPassword != updateUserDto.ConfirmNewPassword)

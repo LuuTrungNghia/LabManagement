@@ -6,6 +6,10 @@ namespace api.Dtos.User
     {
         [Required]
         public string Username { get; set; }
+        public string FullName { get; set; } 
+        public string Avatar { get; set; }  // Thêm URL hoặc đường dẫn đến ảnh
+        public DateTime DateOfBirth { get; set; }  // Ngày Sinh
+        public string Gender { get; set; }  // Male, Female, Other
         
         [Required]
         [EmailAddress]
