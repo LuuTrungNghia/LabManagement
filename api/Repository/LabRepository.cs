@@ -1,63 +1,55 @@
-// using System.Collections.Generic;
-// using System.Linq;
-// using System.Threading.Tasks;
-// using api.Data;
-// using api.Dtos.Lab;
-// using api.Interface;
-// using api.Mappers;
-// using api.Models;
-// using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using api.Data;
+using api.Dtos.Lab;
+using api.Interface;
+using api.Mappers;
+using api.Models;
+using Microsoft.EntityFrameworkCore;
 
-// namespace api.Repositories
-// {
-//      public class LabRepository : ILabRepository
-//     {
-//         private readonly ApplicationDbContext _context;
+namespace api.Repositories
+{
+    public class LabRepository : ILabRepository
+{
+    private readonly ApplicationDbContext _context;
 
-//         public LabRepository(ApplicationDbContext context)
-//         {
-//             _context = context;
-//         }
+    public LabRepository(ApplicationDbContext context)
+    {
+        _context = context;
+    }
 
-//         public async Task<IEnumerable<LabDto>> GetAllAsync()
-//         {
-//             return await _context.Labs
-//                 .Select(lab => lab.ToDto())
-//                 .ToListAsync();
-//         }
+    public async Task<List<Lab>> GetAllAsync()
+    {
+        return await _context.Labs.ToListAsync();
+    }
 
-//         public async Task<LabDto> GetByIdAsync(int id)
-//         {
-//             var lab = await _context.Labs.FindAsync(id);
-//             return lab?.ToDto();
-//         }
+    public async Task<Lab> GetByIdAsync(int id)
+    {
+        return await _context.Labs.FindAsync(id);
+    }
 
-//         public async Task<LabDto> CreateAsync(CreateLabRequestDto labDto)
-//         {
-//             var lab = labDto.ToModel();
-//             _context.Labs.Add(lab);
-//             await _context.SaveChangesAsync();
-//             return lab.ToDto();
-//         }
+    public async Task CreateAsync(Lab lab)
+    {
+        await _context.Labs.AddAsync(lab);
+        await _context.SaveChangesAsync();
+    }
 
-//         public async Task<LabDto> UpdateAsync(int id, UpdateLabRequestDto labDto)
-//         {
-//             var lab = await _context.Labs.FindAsync(id);
-//             if (lab == null) return null;
+    public async Task UpdateAsync(Lab lab)
+    {
+        _context.Labs.Update(lab);
+        await _context.SaveChangesAsync();
+    }
 
-//             lab.UpdateModel(labDto);
-//             await _context.SaveChangesAsync();
-//             return lab.ToDto();
-//         }
+    public async Task DeleteAsync(int id)
+    {
+        var lab = await _context.Labs.FindAsync(id);
+        if (lab != null)
+        {
+            _context.Labs.Remove(lab);
+            await _context.SaveChangesAsync();
+        }
+    }
+}
 
-//         public async Task<bool> DeleteAsync(int id)
-//         {
-//             var lab = await _context.Labs.FindAsync(id);
-//             if (lab == null) return false;
-
-//             _context.Labs.Remove(lab);
-//             await _context.SaveChangesAsync();
-//             return true;
-//         }
-//     }
-// }
+}

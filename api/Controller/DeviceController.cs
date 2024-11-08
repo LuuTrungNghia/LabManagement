@@ -1,76 +1,105 @@
-// using api.Data;
-// using api.Dtos.Device;
-// using api.Helper;
-// using api.Interface;
-// using api.Mappers;
-// using Microsoft.AspNetCore.Mvc;
-// using System.Collections.Generic;
-// using System.Linq;
-// using System.Threading.Tasks;
+using api.Dtos.Device;
+using api.Interfaces;
+using api.Models;
+using Microsoft.AspNetCore.Mvc;
 
-// namespace api.Controller
-// {
-//     [Route("api/v{v}/Device")]
-//     [ApiController]
-//     public class DeviceController : ControllerBase
-//     {
-//         private readonly IDeviceRepository _deviceRepo;
+namespace api.Controllers
+{
+    [Route("api/devices")]
+    [ApiController]
+    public class DevicesController : ControllerBase
+    {
+        private readonly IDeviceRepository _deviceRepo;
 
-//         public DeviceController(IDeviceRepository deviceRepo)
-//         {
-//             _deviceRepo = deviceRepo;
-//         }
+        public DevicesController(IDeviceRepository deviceRepo)
+        {
+            _deviceRepo = deviceRepo;
+        }
 
-//         [HttpGet("get-all")]
-//         public async Task<IActionResult> GetAll()
-//         {
-//             var devices = await _deviceRepo.GetAllAsync();
-//             return Ok(devices.Select(s => s.ToDeviceDto()).ToList());
-//         }
+        [HttpGet("get-all")]
+        // [Authorize(Roles = "admin")]
+        public async Task<IActionResult> GetAll()
+        {
+            var devices = await _deviceRepo.GetAllAsync();
+            var deviceDtos = devices.Select(d => new DeviceDto
+            {
+                Id = d.Id,
+                DeviceName = d.DeviceName,
+                Quantity = d.Quantity,
+                DeviceStatus = d.DeviceStatus
+            }).ToList();
 
-//         [HttpGet("get-device-by-id/{id:int}")]
-//         public async Task<IActionResult> GetDeviceById([FromRoute] int id)
-//         {
-//             var device = await _deviceRepo.GetDeviceByIdAsync(id);
-//             if (device == null)
-//                 return NotFound();
+            return Ok(deviceDtos);
+        }
 
-//             return Ok(device.ToDeviceDto());
-//         }
+        [HttpGet("get-by-id/{id:int}")]
+        // [Authorize(Roles = "admin")]
+        public async Task<IActionResult> GetById(int id)
+        {
+            var device = await _deviceRepo.GetByIdAsync(id);
+            if (device == null) return NotFound();
 
-//         [HttpPost("create")]
-//         public async Task<IActionResult> Create([FromBody] CreateDeviceRequestDto deviceDto)
-//         {
-//             var deviceModel = deviceDto.ToDeviceFromCreateDto();
-//             await _deviceRepo.CreateAsync(deviceModel);
-//             return CreatedAtAction(nameof(GetDeviceById), new { v = 1, id = deviceModel.Id }, deviceModel.ToDeviceDto());
-//         }
+            var deviceDto = new DeviceDto
+            {
+                Id = device.Id,
+                DeviceName = device.DeviceName,
+                Quantity = device.Quantity,
+                DeviceStatus = device.DeviceStatus
+            };
 
-//         [HttpPut("update-device/{id:int}")]
-//         public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateDeviceRequestDto updateDto)
-//         {
-//             var deviceModel = await _deviceRepo.UpdateAsync(id, updateDto);
-//             if (deviceModel == null)
-//                 return NotFound();
+            return Ok(deviceDto);
+        }
 
-//             return Ok(deviceModel.ToDeviceDto());
-//         }
+        [HttpPost("create")]
+        // [Authorize(Roles = "admin")]
+        public async Task<IActionResult> Create([FromBody] CreateDeviceRequestDto deviceDto)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
 
-//         [HttpDelete("delete/{id:int}")]
-//         public async Task<IActionResult> Delete([FromRoute] int id)
-//         {
-//             var deviceModel = await _deviceRepo.DeleteAsync(id);
-//             if (deviceModel == null)
-//                 return NotFound();
+            var device = new Device
+            {
+                DeviceName = deviceDto.DeviceName,
+                Quantity = deviceDto.Quantity
+            };
 
-//             return NoContent();
-//         }
+            await _deviceRepo.CreateAsync(device);
+            return CreatedAtAction(nameof(GetById), new { id = device.Id }, device);
+        }
 
-//         [HttpPost("import")]
-//         public async Task<IActionResult> ImportDevices([FromBody] List<CreateDeviceRequestDto> deviceDtos)
-//         {
-//             var devices = await _deviceRepo.ImportDevicesAsync(deviceDtos);
-//             return Ok(devices.Select(s => s.ToDeviceDto()).ToList());
-//         }
-//     }
-// }
+        [HttpPut("update/{id:int}")]
+        // [Authorize(Roles = "admin")]
+        public async Task<IActionResult> Update(int id, [FromBody] UpdateDeviceRequestDto deviceDto)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            var updatedDevice = await _deviceRepo.UpdateAsync(id, deviceDto);
+            if (updatedDevice == null) return NotFound();
+
+            return Ok(updatedDevice);
+        }
+
+        [HttpDelete("delete/{id:int}")]
+        // [Authorize(Roles = "admin")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var deletedDevice = await _deviceRepo.DeleteAsync(id);
+            if (deletedDevice == null) return NotFound();
+
+            return NoContent();
+        }
+
+        [HttpPost("import")]
+        // [Authorize(Roles = "admin")]
+        public async Task<IActionResult> Import([FromBody] List<CreateDeviceRequestDto> deviceDtos)
+        {
+            var devices = deviceDtos.Select(dto => new Device
+            {
+                DeviceName = dto.DeviceName,
+                Quantity = dto.Quantity
+            }).ToList();
+
+            await _deviceRepo.ImportDevices(devices);
+            return Ok();
+        }
+    }
+}

@@ -1,6 +1,9 @@
 using api;
 using api.Data;
+using api.Interface;
 using api.Interfaces;
+using api.Repositories;
+using api.Repository;
 using api.Service;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -50,6 +53,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 // Register the TokenService (used to generate JWT tokens)
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IDeviceRepository, DeviceRepository>();
+builder.Services.AddScoped<ILabRepository, LabRepository>();
 
 // Add Swagger support with JWT token documentation
 builder.Services.AddEndpointsApiExplorer();
