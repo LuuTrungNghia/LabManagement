@@ -1,19 +1,13 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using api.Helper;
 using api.Models;
-using api.Dtos.Lab;
 
-namespace api.Interface
+namespace api.Interfaces
 {
     public interface ILabRepository
     {
-        Task<List<Lab>> GetAllAsync();
-        Task<Lab> GetByIdAsync(int id);
+        Task<IEnumerable<Lab>> GetAllAsync();
+        Task<Lab?> GetByIdAsync(int id);
         Task CreateAsync(Lab lab);
-        Task UpdateAsync(Lab lab);
-        Task DeleteAsync(int id);
+        Task<Lab?> UpdateAsync(Lab lab);
+        Task<Lab?> DeleteAsync(int id);
     }
 }

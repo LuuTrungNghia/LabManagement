@@ -4,6 +4,6 @@ namespace api.Dtos.User
 {
     public class ImportUserDto
     {
-        public List<RegisterUserDto> Users { get; set; }
+        public required List<RegisterUserDto> Users { get; set; }
     }
 }

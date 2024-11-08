@@ -17,7 +17,6 @@ D:\LabManagement\LabManagement\api\bin\Debug\net8.0\Microsoft.AspNetCore.JsonPat
 D:\LabManagement\LabManagement\api\bin\Debug\net8.0\Microsoft.AspNetCore.Mvc.NewtonsoftJson.dll
 D:\LabManagement\LabManagement\api\bin\Debug\net8.0\Microsoft.AspNetCore.OpenApi.dll
 D:\LabManagement\LabManagement\api\bin\Debug\net8.0\Microsoft.Bcl.AsyncInterfaces.dll
-D:\LabManagement\LabManagement\api\bin\Debug\net8.0\Microsoft.Bcl.TimeProvider.dll
 D:\LabManagement\LabManagement\api\bin\Debug\net8.0\Microsoft.CodeAnalysis.dll
 D:\LabManagement\LabManagement\api\bin\Debug\net8.0\Microsoft.CodeAnalysis.CSharp.dll
 D:\LabManagement\LabManagement\api\bin\Debug\net8.0\Microsoft.CodeAnalysis.CSharp.Workspaces.dll

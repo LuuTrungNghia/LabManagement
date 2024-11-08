@@ -1,7 +1,9 @@
 using api.Dtos.Device;
 using api.Interfaces;
+using api.Mappers;
 using api.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace api.Controllers
 {
@@ -10,96 +12,89 @@ namespace api.Controllers
     public class DevicesController : ControllerBase
     {
         private readonly IDeviceRepository _deviceRepo;
+        private readonly ILogger<DevicesController> _logger;
 
-        public DevicesController(IDeviceRepository deviceRepo)
+        public DevicesController(IDeviceRepository deviceRepo, ILogger<DevicesController> logger)
         {
             _deviceRepo = deviceRepo;
+            _logger = logger;
         }
 
         [HttpGet("get-all")]
-        // [Authorize(Roles = "admin")]
         public async Task<IActionResult> GetAll()
         {
+            _logger.LogInformation("Fetching all devices.");
             var devices = await _deviceRepo.GetAllAsync();
-            var deviceDtos = devices.Select(d => new DeviceDto
-            {
-                Id = d.Id,
-                DeviceName = d.DeviceName,
-                Quantity = d.Quantity,
-                DeviceStatus = d.DeviceStatus
-            }).ToList();
-
-            return Ok(deviceDtos);
+            return Ok(devices.Select(d => d.ToDeviceDto()));
         }
 
         [HttpGet("get-by-id/{id:int}")]
-        // [Authorize(Roles = "admin")]
         public async Task<IActionResult> GetById(int id)
         {
             var device = await _deviceRepo.GetByIdAsync(id);
-            if (device == null) return NotFound();
-
-            var deviceDto = new DeviceDto
+            if (device == null)
             {
-                Id = device.Id,
-                DeviceName = device.DeviceName,
-                Quantity = device.Quantity,
-                DeviceStatus = device.DeviceStatus
-            };
+                _logger.LogWarning("Device with ID {DeviceId} not found.", id);
+                return NotFound(new ProblemDetails
+                {
+                    Status = StatusCodes.Status404NotFound,
+                    Title = "Device Not Found",
+                    Detail = $"Device with ID {id} was not found.",
+                    Instance = HttpContext.Request.Path
+                });
+            }
 
-            return Ok(deviceDto);
+            return Ok(device.ToDeviceDto());
         }
 
         [HttpPost("create")]
-        // [Authorize(Roles = "admin")]
         public async Task<IActionResult> Create([FromBody] CreateDeviceRequestDto deviceDto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-
-            var device = new Device
+            if (!ModelState.IsValid)
             {
-                DeviceName = deviceDto.DeviceName,
-                Quantity = deviceDto.Quantity
-            };
+                _logger.LogWarning("Invalid model state for creating a device.");
+                return BadRequest(ModelState);
+            }
 
+            var device = deviceDto.ToDevice();
             await _deviceRepo.CreateAsync(device);
+
+            _logger.LogInformation("Device created with ID {DeviceId}", device.Id);
             return CreatedAtAction(nameof(GetById), new { id = device.Id }, device);
         }
 
         [HttpPut("update/{id:int}")]
-        // [Authorize(Roles = "admin")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateDeviceRequestDto deviceDto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("Invalid model state for updating device with ID {DeviceId}.", id);
+                return BadRequest(ModelState);
+            }
 
             var updatedDevice = await _deviceRepo.UpdateAsync(id, deviceDto);
-            if (updatedDevice == null) return NotFound();
+            if (updatedDevice == null)
+            {
+                _logger.LogWarning("Device with ID {DeviceId} not found for update.", id);
+                return NotFound();
+            }
 
-            return Ok(updatedDevice);
+            _logger.LogInformation("Device with ID {DeviceId} updated.", id);
+            return Ok(updatedDevice.ToDeviceDto());
         }
 
         [HttpDelete("delete/{id:int}")]
-        // [Authorize(Roles = "admin")]
         public async Task<IActionResult> Delete(int id)
         {
             var deletedDevice = await _deviceRepo.DeleteAsync(id);
-            if (deletedDevice == null) return NotFound();
-
-            return NoContent();
-        }
-
-        [HttpPost("import")]
-        // [Authorize(Roles = "admin")]
-        public async Task<IActionResult> Import([FromBody] List<CreateDeviceRequestDto> deviceDtos)
-        {
-            var devices = deviceDtos.Select(dto => new Device
+            if (deletedDevice == null)
             {
-                DeviceName = dto.DeviceName,
-                Quantity = dto.Quantity
-            }).ToList();
+                _logger.LogWarning("Device with ID {DeviceId} not found for deletion.", id);
+                return NotFound();
+            }
 
-            await _deviceRepo.ImportDevices(devices);
-            return Ok();
+            _logger.LogInformation("Device with ID {DeviceId} deleted.", id);
+            return NoContent();
         }
     }
 }
