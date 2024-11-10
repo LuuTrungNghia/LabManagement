@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace api.Dtos.DeviceBorrowing
+namespace api.Dtos.DeviceBorrowingRequest
 {
     public class UpdateRequestStatusDto
     {

@@ -1,6 +1,4 @@
-using System;
-
-namespace api.Dtos.DeviceBorrowing
+namespace api.Dtos.DeviceBorrowingRequest
 {
     public class DeviceBorrowingRequestDto
     {
@@ -11,6 +9,6 @@ namespace api.Dtos.DeviceBorrowing
         public string UserName { get; set; }
         public DateTime BorrowDate { get; set; }
         public DateTime? ReturnDate { get; set; }
-        public string Status { get; set; } 
+        public string Status { get; set; }
     }
 }

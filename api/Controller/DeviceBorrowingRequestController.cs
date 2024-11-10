@@ -1,4 +1,4 @@
-using api.Dtos.DeviceBorrowing;
+using api.Dtos.DeviceBorrowingRequest;
 using api.Interfaces;
 using api.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -18,17 +18,16 @@ namespace api.Controllers
             _deviceBorrowingService = deviceBorrowingService;
         }
 
-        // Tạo yêu cầu mượn thiết bị
         [HttpPost("borrow")]
         public async Task<IActionResult> BorrowDevice([FromBody] RequestBorrowingDeviceDto dto)
         {
             var result = await _deviceBorrowingService.BorrowDeviceAsync(dto);
+            
             if (!result.Success)
-                return BadRequest(result.Message);
-            return Ok(result.Data);
+                return BadRequest(result.Message); 
+            return CreatedAtAction(nameof(GetRequestById), new { id = result.Id }, result.Data);
         }
 
-        // Cập nhật trạng thái đơn mượn
         [HttpPut("update-status")]
         public async Task<IActionResult> UpdateRequestStatus([FromBody] UpdateRequestStatusDto dto)
         {
@@ -38,7 +37,6 @@ namespace api.Controllers
             return Ok(result.Data);
         }
 
-        // Lấy yêu cầu mượn theo ID
         [HttpGet("{id}")]
         public async Task<IActionResult> GetRequestById(int id)
         {
@@ -48,19 +46,12 @@ namespace api.Controllers
             return Ok(result.Data);
         }
 
-        // Lấy tất cả yêu cầu mượn thiết bị
-        [HttpGet("all")]
-        public async Task<IActionResult> GetAllRequests()
-        {
-            var result = await _deviceBorrowingService.GetAllRequestsAsync();
-            return Ok(result.Data);
-        }
-
-        // Lịch sử mượn thiết bị của người dùng
         [HttpGet("history/{userId}")]
         public async Task<IActionResult> GetBorrowingHistory(string userId)
         {
             var result = await _deviceBorrowingService.GetBorrowingHistoryAsync(userId);
+            if (!result.Success)
+                return NotFound(result.Message);
             return Ok(result.Data);
         }
     }

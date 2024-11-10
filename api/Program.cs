@@ -4,6 +4,7 @@ using api.Interfaces;
 using api.Repositories;
 using api.Services;
 using api.Models;
+using api.Mappers;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -21,6 +22,8 @@ builder.Logging.AddConsole();
 
 // Add services to the container
 builder.Services.AddControllers();
+
+// Configure database connection
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -91,15 +94,18 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-builder.Services.AddAuthorization();
-
 // Register custom repositories and services for dependency injection
 builder.Services.AddScoped<IDeviceRepository, DeviceRepository>();
 builder.Services.AddScoped<ILabRepository, LabRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ITokenService, TokenService>();
-//builder.Services.AddScoped<IDeviceBorrowingRepository, DeviceBorrowingRepository>();
 builder.Services.AddScoped<RoleManager<IdentityRole>>();
+
+// Register AutoMapper
+builder.Services.AddAutoMapper(typeof(DeviceBorrowingRequestMapper));
+
+// Add Authorization services
+builder.Services.AddAuthorization();
 
 // Build the application
 var app = builder.Build();

@@ -1,10 +1,10 @@
-using api.Models;
+using api.Data;
 using api.Interfaces;
+using api.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using api.Data;
 
 namespace api.Repositories
 {
@@ -26,22 +26,14 @@ namespace api.Repositories
         public async Task<DeviceBorrowingRequest?> GetRequestByIdAsync(int requestId)
         {
             return await _context.DeviceBorrowingRequests
-                                 .Include(r => r.Device)
-                                 .Include(r => r.User)
-                                 .FirstOrDefaultAsync(r => r.Id == requestId);
-        }
-
-        public async Task<IEnumerable<DeviceBorrowingRequest>> GetAllRequestsAsync()
-        {
-            return await _context.DeviceBorrowingRequests
-                                 .Include(r => r.Device)
-                                 .Include(r => r.User)
-                                 .ToListAsync();
+                .Include(r => r.Device)
+                .Include(r => r.FullName)
+                .FirstOrDefaultAsync(r => r.Id == requestId);
         }
 
         public async Task UpdateRequestStatusAsync(int requestId, string status)
         {
-            var request = await _context.DeviceBorrowingRequests.FindAsync(requestId);
+            var request = await GetRequestByIdAsync(requestId);
             if (request != null)
             {
                 request.Status = status;
@@ -49,12 +41,19 @@ namespace api.Repositories
             }
         }
 
+        public async Task<IEnumerable<DeviceBorrowingRequest>> GetAllRequestsAsync()
+        {
+            return await _context.DeviceBorrowingRequests
+                .Include(r => r.Device)
+                .Include(r => r.FullName)
+                .ToListAsync();
+        }
+
         public async Task<IEnumerable<DeviceBorrowingRequest>> GetBorrowingHistoryAsync(string userId)
         {
             return await _context.DeviceBorrowingRequests
-                                 .Include(r => r.Device)
-                                 .Where(r => r.UserId == userId)
-                                 .ToListAsync();
+                .Where(r => r.UserId == userId)
+                .ToListAsync();
         }
     }
 }
