@@ -10,7 +10,8 @@ namespace api.Mappers
             Id = device.DeviceId,
             DeviceName = device.DeviceName,
             Total = device.Total,
-            CategoryId = device.CategoryId
+            CategoryId = device.CategoryId,
+            DeviceItems = device.DeviceItems.Select(item => item.ToDeviceItemDto()).ToList()
         };
 
         public static Device ToDevice(this CreateDeviceRequestDto dto) => new Device

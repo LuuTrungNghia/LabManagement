@@ -11,6 +11,6 @@ namespace api.Interfaces
         Task<ServiceResultDto<DeviceBorrowingRequestDto>> UpdateRequestStatusAsync(UpdateRequestStatusDto dto);
         Task<ServiceResultDto<DeviceBorrowingRequestDto>> GetRequestByIdAsync(int requestId);
         Task<ServiceResultDto<IEnumerable<DeviceBorrowingRequestDto>>> GetAllRequestsAsync();
-        Task<ServiceResultDto<IEnumerable<DeviceBorrowingRequestDto>>> GetBorrowingHistoryAsync(string userId);
+        Task<ServiceResultDto<IEnumerable<DeviceBorrowingRequestDto>>> GetBorrowingHistoryAsync(string userName);
     }
 }

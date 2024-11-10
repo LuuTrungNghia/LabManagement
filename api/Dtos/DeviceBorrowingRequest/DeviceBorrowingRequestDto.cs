@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace api.Dtos.DeviceBorrowingRequest
 {
     public class DeviceBorrowingRequestDto

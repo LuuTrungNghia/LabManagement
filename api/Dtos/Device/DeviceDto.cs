@@ -6,5 +6,6 @@ namespace api.Dtos.Device
         public string DeviceName { get; set; } = string.Empty;
         public int Total { get; set; }
         public int CategoryId { get; set; }
+        public List<DeviceItemDto> DeviceItems { get; set; } = new List<DeviceItemDto>();
     }
 }

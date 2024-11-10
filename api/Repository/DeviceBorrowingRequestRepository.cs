@@ -27,7 +27,6 @@ namespace api.Repositories
         {
             return await _context.DeviceBorrowingRequests
                 .Include(r => r.Device)
-                .Include(r => r.FullName)
                 .FirstOrDefaultAsync(r => r.Id == requestId);
         }
 
@@ -45,14 +44,13 @@ namespace api.Repositories
         {
             return await _context.DeviceBorrowingRequests
                 .Include(r => r.Device)
-                .Include(r => r.FullName)
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<DeviceBorrowingRequest>> GetBorrowingHistoryAsync(string UserName)
+        public async Task<IEnumerable<DeviceBorrowingRequest>> GetBorrowingHistoryAsync(string userName)
         {
             return await _context.DeviceBorrowingRequests
-                .Where(r => r.UserName == UserName)
+                .Where(r => r.UserName == userName)
                 .ToListAsync();
         }
     }
