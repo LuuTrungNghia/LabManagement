@@ -153,3 +153,5 @@ D:\LabManagement\LabManagement\api\obj\Debug\net8.0\refint\api.dll
 D:\LabManagement\LabManagement\api\obj\Debug\net8.0\api.pdb
 D:\LabManagement\LabManagement\api\obj\Debug\net8.0\api.genruntimeconfig.cache
 D:\LabManagement\LabManagement\api\obj\Debug\net8.0\ref\api.dll
+D:\LabManagement\LabManagement\api\bin\Debug\net8.0\AutoMapper.dll
+D:\LabManagement\LabManagement\api\bin\Debug\net8.0\AutoMapper.Extensions.Microsoft.DependencyInjection.dll

@@ -1,5 +1,7 @@
 using api.Dtos;
 using api.Dtos.DeviceBorrowingRequest;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace api.Interfaces
 {

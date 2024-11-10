@@ -25,60 +25,64 @@ namespace api.Services
 
         public async Task<ServiceResultDto<DeviceBorrowingRequestDto>> BorrowDeviceAsync(RequestBorrowingDeviceDto dto)
         {
-            var device = await _deviceRepository.GetByIdAsync(dto.DeviceId);
-            if (device == null)
+            var requestList = new List<DeviceBorrowingRequest>();
+            var notAvailableDevices = new List<int>();
+            
+            // Kiểm tra từng thiết bị
+            foreach (var deviceId in dto.DeviceIds)
+            {
+                var device = await _deviceRepository.GetByIdAsync(deviceId);
+                if (device == null)
+                {
+                    notAvailableDevices.Add(deviceId);  // Thêm vào danh sách nếu không tìm thấy thiết bị
+                    continue;
+                }
+
+                if (device.DeviceItems.Count <= 0)
+                {
+                    notAvailableDevices.Add(deviceId);
+                    continue;
+                }
+
+                var request = new DeviceBorrowingRequest
+                {
+                    DeviceId = deviceId,
+                    UserName = dto.UserName,
+                    BorrowDate = dto.BorrowDate,
+                    Status = "Pending"
+                };
+                
+                await _repository.CreateRequestAsync(request);
+                requestList.Add(request);
+
+                var borrowedDeviceItem = device.DeviceItems.FirstOrDefault();
+                if (borrowedDeviceItem != null)
+                {
+                    device.DeviceItems.Remove(borrowedDeviceItem);
+                }
+                
+                var updateDeviceDto = _mapper.Map<UpdateDeviceRequestDto>(device);
+                await _deviceRepository.UpdateAsync(device.DeviceId, updateDeviceDto);
+            }
+
+            if (notAvailableDevices.Any())
             {
                 return new ServiceResultDto<DeviceBorrowingRequestDto>
                 {
                     Success = false,
-                    Message = "Device not found"
+                    Message = $"These devices are not available: {string.Join(", ", notAvailableDevices)}"
                 };
             }
 
-            if (device.DeviceItems.Count <= 0)
-            {
-                return new ServiceResultDto<DeviceBorrowingRequestDto>
-                {
-                    Success = false,
-                    Message = "Device is not available for borrowing"
-                };
-            }
-
-            var request = new DeviceBorrowingRequest
-            {
-                DeviceId = dto.DeviceId,
-                UserId = dto.UserId,
-                BorrowDate = dto.BorrowDate,
-                Status = "Pending"
-            };
-
-            // Lưu yêu cầu mượn thiết bị vào database
-            await _repository.CreateRequestAsync(request);
-
-            // Sau khi tạo thành công, lấy ID của yêu cầu mượn thiết bị vừa tạo
-            var createdRequestId = request.Id;
-
-            // Cập nhật trạng thái của thiết bị sau khi mượn
-            var borrowedDeviceItem = device.DeviceItems.FirstOrDefault();
-            if (borrowedDeviceItem != null)
-            {
-                device.DeviceItems.Remove(borrowedDeviceItem);
-            }
-
-            // Cập nhật thiết bị
-            var updateDeviceDto = _mapper.Map<UpdateDeviceRequestDto>(device);
-            await _deviceRepository.UpdateAsync(device.DeviceId, updateDeviceDto);
-
-            // Chuyển đổi thành DTO trả về
-            var requestDto = _mapper.Map<DeviceBorrowingRequestDto>(request);
-
+            var requestDtos = _mapper.Map<List<DeviceBorrowingRequestDto>>(requestList);
             return new ServiceResultDto<DeviceBorrowingRequestDto>
             {
                 Success = true,
-                Data = requestDto,
-                Id = createdRequestId  // Trả về ID của yêu cầu mượn
+                Data = requestDtos.FirstOrDefault(), 
+                Id = requestList.FirstOrDefault()?.Id 
             };
         }
+
 
         public async Task<ServiceResultDto<DeviceBorrowingRequestDto>> UpdateRequestStatusAsync(UpdateRequestStatusDto dto)
         {

@@ -24,7 +24,8 @@ namespace api.Controllers
             var result = await _deviceBorrowingService.BorrowDeviceAsync(dto);
             
             if (!result.Success)
-                return BadRequest(result.Message); 
+                return BadRequest(new { message = result.Message, code = "DEVICE_BORROW_FAILED" });
+
             return CreatedAtAction(nameof(GetRequestById), new { id = result.Id }, result.Data);
         }
 
@@ -33,7 +34,8 @@ namespace api.Controllers
         {
             var result = await _deviceBorrowingService.UpdateRequestStatusAsync(dto);
             if (!result.Success)
-                return BadRequest(result.Message);
+                return BadRequest(new { message = result.Message, code = "STATUS_UPDATE_FAILED" });
+
             return Ok(result.Data);
         }
 
@@ -42,7 +44,8 @@ namespace api.Controllers
         {
             var result = await _deviceBorrowingService.GetRequestByIdAsync(id);
             if (!result.Success)
-                return NotFound(result.Message);
+                return NotFound(new { message = result.Message, code = "REQUEST_NOT_FOUND" });
+
             return Ok(result.Data);
         }
 
@@ -51,7 +54,8 @@ namespace api.Controllers
         {
             var result = await _deviceBorrowingService.GetBorrowingHistoryAsync(userId);
             if (!result.Success)
-                return NotFound(result.Message);
+                return NotFound(new { message = result.Message, code = "HISTORY_NOT_FOUND" });
+
             return Ok(result.Data);
         }
     }

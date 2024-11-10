@@ -9,6 +9,7 @@ namespace api.Dtos.DeviceBorrowingRequest
 
         [Required]
         [StringLength(50)]
+        [RegularExpression("^(Pending|Approved|Returned)$", ErrorMessage = "Invalid status")]
         public string Status { get; set; }
     }
 }

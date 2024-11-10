@@ -1,10 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "N/VLDPzWaWs=",
-  "success": false,
+  "dgSpecHash": "k+PTwnUUiEw=",
+  "success": true,
   "projectFilePath": "D:\\LabManagement\\LabManagement\\api\\api.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\nunoo\\.nuget\\packages\\automapper\\13.0.1\\automapper.13.0.1.nupkg.sha512",
+    "C:\\Users\\nunoo\\.nuget\\packages\\automapper\\12.0.1\\automapper.12.0.1.nupkg.sha512",
+    "C:\\Users\\nunoo\\.nuget\\packages\\automapper.extensions.microsoft.dependencyinjection\\12.0.1\\automapper.extensions.microsoft.dependencyinjection.12.0.1.nupkg.sha512",
     "C:\\Users\\nunoo\\.nuget\\packages\\azure.core\\1.35.0\\azure.core.1.35.0.nupkg.sha512",
     "C:\\Users\\nunoo\\.nuget\\packages\\azure.identity\\1.10.3\\azure.identity.1.10.3.nupkg.sha512",
     "C:\\Users\\nunoo\\.nuget\\packages\\bcrypt.net-next\\4.0.3\\bcrypt.net-next.4.0.3.nupkg.sha512",
@@ -119,15 +120,5 @@
     "C:\\Users\\nunoo\\.nuget\\packages\\system.threading.tasks.extensions\\4.5.4\\system.threading.tasks.extensions.4.5.4.nupkg.sha512",
     "C:\\Users\\nunoo\\.nuget\\packages\\system.windows.extensions\\6.0.0\\system.windows.extensions.6.0.0.nupkg.sha512"
   ],
-  "logs": [
-    {
-      "code": "NU1102",
-      "level": "Error",
-      "message": "Unable to find package AutoMapper.Extensions.Microsoft.DependencyInjection with version (>= 13.0.1)\r\n  - Found 26 version(s) in nuget.org [ Nearest version: 12.0.1 ]\r\n  - Found 0 version(s) in Microsoft Visual Studio Offline Packages\r\n  - Found 0 version(s) in C:\\Program Files\\dotnet\\library-packs",
-      "libraryId": "AutoMapper.Extensions.Microsoft.DependencyInjection",
-      "targetGraphs": [
-        "net8.0"
-      ]
-    }
-  ]
+  "logs": []
 }

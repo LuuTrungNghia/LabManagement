@@ -18,5 +18,12 @@ namespace api.Models
         public Category Category { get; set; }
 
         public List<DeviceItem> DeviceItems { get; set; } = new();
+        public DeviceItemStatus DeviceStatus
+        {
+            get
+            {
+                return DeviceItems?.FirstOrDefault()?.DeviceItemStatus ?? DeviceItemStatus.Good;
+            }
+        }
     }
 }

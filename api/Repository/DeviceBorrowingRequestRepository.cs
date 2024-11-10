@@ -49,10 +49,10 @@ namespace api.Repositories
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<DeviceBorrowingRequest>> GetBorrowingHistoryAsync(string userId)
+        public async Task<IEnumerable<DeviceBorrowingRequest>> GetBorrowingHistoryAsync(string UserName)
         {
             return await _context.DeviceBorrowingRequests
-                .Where(r => r.UserId == userId)
+                .Where(r => r.UserName == UserName)
                 .ToListAsync();
         }
     }

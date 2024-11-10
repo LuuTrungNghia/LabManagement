@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using api.Models;
 
 namespace api.Dtos.Device
 {
@@ -9,5 +10,6 @@ namespace api.Dtos.Device
 
         [Required]
         public int CategoryId { get; set; }
+        public DeviceItemStatus DeviceStatus { get; set; }
     }
 }

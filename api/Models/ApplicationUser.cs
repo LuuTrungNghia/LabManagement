@@ -4,7 +4,8 @@ using System;
 namespace api.Models
 {
     public class ApplicationUser : IdentityUser
-    {
+    {   
+        public string Id { get; set; }
         public string FullName { get; set; }
         public string Avatar { get; set; }
         public DateTime DateOfBirth { get; set; }
