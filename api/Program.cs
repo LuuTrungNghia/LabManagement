@@ -24,7 +24,7 @@ builder.Services.AddControllers();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Add Identity with default IdentityUser
+// Configure Identity
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
     options.Password.RequireDigit = true;
@@ -53,40 +53,54 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-// Add Swagger support with JWT token documentation
-builder.Services.AddEndpointsApiExplorer();
+// Configure CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", builder =>
+    {
+        builder.AllowAnyOrigin()
+               .AllowAnyMethod()
+               .AllowAnyHeader();
+    });
+});
+
+// Add Swagger with JWT support
 builder.Services.AddSwaggerGen(options =>
 {
-    options.AddSecurityDefinition(name: "Bearer", securityScheme: new OpenApiSecurityScheme
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
-        Description = "Enter thr bearer authorization token: `Bearer Generated-JWT-Token`",
+        Description = "Enter the Bearer authorization token: `Bearer Generated-JWT-Token`",
         In = ParameterLocation.Header,
         Type = SecuritySchemeType.ApiKey,
         Scheme = "Bearer"
     });
     options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
             {
+                Reference = new OpenApiReference
                 {
-                    new OpenApiSecurityScheme
-                    {
-                        Reference = new OpenApiReference
-                        {
-                            Type = ReferenceType.SecurityScheme,
-                            Id = JwtBearerDefaults.AuthenticationScheme
-                        }
-                    },
-                    new string[] { }
+                    Type = ReferenceType.SecurityScheme,
+                    Id = JwtBearerDefaults.AuthenticationScheme
                 }
-            });
+            },
+            Array.Empty<string>()
+        }
+    });
 });
+
 builder.Services.AddAuthorization();
 
+// Register custom repositories and services for dependency injection
 builder.Services.AddScoped<IDeviceRepository, DeviceRepository>();
 builder.Services.AddScoped<ILabRepository, LabRepository>();
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ITokenService, TokenService>();
-builder.Services.AddScoped<IDeviceBorrowingRepository, DeviceBorrowingRepository>();
+//builder.Services.AddScoped<IDeviceBorrowingRepository, DeviceBorrowingRepository>();
 builder.Services.AddScoped<RoleManager<IdentityRole>>();
+
 // Build the application
 var app = builder.Build();
 
@@ -99,14 +113,14 @@ if (app.Environment.IsDevelopment())
 
 app.UseAuthentication();
 app.UseAuthorization();
-
+app.UseCors("AllowAll");
 app.MapControllers();
 
 // Seed the data (e.g., create roles, users, etc.)
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
-    var userManager = services.GetRequiredService<UserManager<ApplicationUser>>(); // Sử dụng đúng UserManager<ApplicationUser>
+    var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
     await SeedData.Initialize(services, userManager); // Seed roles and admin user here
 }
 

@@ -3,29 +3,40 @@ using api.Models;
 
 namespace api.Mappers
 {
-    public static class DeviceMappers
+    public static class DeviceMapper
     {
         public static DeviceDto ToDeviceDto(this Device device) => new DeviceDto
         {
-            Id = device.Id,
+            Id = device.DeviceId,
             DeviceName = device.DeviceName,
-            Quantity = device.Quantity,
-            DeviceStatus = device.DeviceStatus.ToString()
+            Total = device.Total,
+            CategoryId = device.CategoryId
         };
 
         public static Device ToDevice(this CreateDeviceRequestDto dto) => new Device
         {
             DeviceName = dto.DeviceName,
-            Quantity = dto.Quantity,
-            DeviceStatus = DeviceStatus.Good
+            CategoryId = dto.CategoryId
         };
 
         public static Device ToDevice(this UpdateDeviceRequestDto dto, Device device)
         {
             device.DeviceName = dto.DeviceName;
-            device.Quantity = dto.Quantity;
-            device.DeviceStatus = Enum.Parse<DeviceStatus>(dto.DeviceStatus);
+            device.CategoryId = dto.CategoryId;
             return device;
         }
+
+        public static UpdateDeviceRequestDto ToUpdateDeviceRequestDto(this Device device) => new UpdateDeviceRequestDto
+        {
+            DeviceName = device.DeviceName,
+            CategoryId = device.CategoryId
+        };
+
+        public static DeviceItem ToDeviceItem(this CreateDeviceItemDto dto) => new DeviceItem
+        {
+            DeviceItemName = dto.DeviceItemName,
+            DeviceItemStatus = dto.DeviceItemStatus,
+            Description = dto.Description
+        };
     }
 }

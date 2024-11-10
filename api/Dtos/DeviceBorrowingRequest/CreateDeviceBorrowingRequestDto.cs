@@ -1,3 +1,4 @@
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace api.Dtos.DeviceBorrowing
@@ -6,11 +7,14 @@ namespace api.Dtos.DeviceBorrowing
     {
         [Required]
         public int DeviceId { get; set; }
+
         [Required]
         public DateTime StartDate { get; set; }
+
         [Required]
         public DateTime EndDate { get; set; }
+
         [Required]
-        public string BorrowerType { get; set; }
+        public string UserId { get; set; }
     }
 }

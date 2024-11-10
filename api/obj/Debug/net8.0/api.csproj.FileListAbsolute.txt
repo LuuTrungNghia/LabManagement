@@ -1,3 +1,11 @@
+D:\LabManagement\LabManagement\api\obj\Debug\net8.0\api.csproj.AssemblyReference.cache
+D:\LabManagement\LabManagement\api\obj\Debug\net8.0\api.GeneratedMSBuildEditorConfig.editorconfig
+D:\LabManagement\LabManagement\api\obj\Debug\net8.0\api.AssemblyInfoInputs.cache
+D:\LabManagement\LabManagement\api\obj\Debug\net8.0\api.AssemblyInfo.cs
+D:\LabManagement\LabManagement\api\obj\Debug\net8.0\api.csproj.CoreCompileInputs.cache
+D:\LabManagement\LabManagement\api\obj\Debug\net8.0\api.MvcApplicationPartsAssemblyInfo.cs
+D:\LabManagement\LabManagement\api\obj\Debug\net8.0\api.MvcApplicationPartsAssemblyInfo.cache
+D:\LabManagement\LabManagement\api\obj\Debug\net8.0\api.sourcelink.json
 D:\LabManagement\LabManagement\api\bin\Debug\net8.0\appsettings.Development.json
 D:\LabManagement\LabManagement\api\bin\Debug\net8.0\appsettings.json
 D:\LabManagement\LabManagement\api\bin\Debug\net8.0\api.exe
@@ -131,14 +139,6 @@ D:\LabManagement\LabManagement\api\bin\Debug\net8.0\runtimes\win\lib\net6.0\Syst
 D:\LabManagement\LabManagement\api\bin\Debug\net8.0\runtimes\win\lib\net6.0\System.Runtime.Caching.dll
 D:\LabManagement\LabManagement\api\bin\Debug\net8.0\runtimes\win\lib\net6.0\System.Security.Cryptography.ProtectedData.dll
 D:\LabManagement\LabManagement\api\bin\Debug\net8.0\runtimes\win\lib\net6.0\System.Windows.Extensions.dll
-D:\LabManagement\LabManagement\api\obj\Debug\net8.0\api.csproj.AssemblyReference.cache
-D:\LabManagement\LabManagement\api\obj\Debug\net8.0\api.GeneratedMSBuildEditorConfig.editorconfig
-D:\LabManagement\LabManagement\api\obj\Debug\net8.0\api.AssemblyInfoInputs.cache
-D:\LabManagement\LabManagement\api\obj\Debug\net8.0\api.AssemblyInfo.cs
-D:\LabManagement\LabManagement\api\obj\Debug\net8.0\api.csproj.CoreCompileInputs.cache
-D:\LabManagement\LabManagement\api\obj\Debug\net8.0\api.MvcApplicationPartsAssemblyInfo.cs
-D:\LabManagement\LabManagement\api\obj\Debug\net8.0\api.MvcApplicationPartsAssemblyInfo.cache
-D:\LabManagement\LabManagement\api\obj\Debug\net8.0\api.sourcelink.json
 D:\LabManagement\LabManagement\api\obj\Debug\net8.0\staticwebassets.build.json
 D:\LabManagement\LabManagement\api\obj\Debug\net8.0\staticwebassets.development.json
 D:\LabManagement\LabManagement\api\obj\Debug\net8.0\staticwebassets\msbuild.api.Microsoft.AspNetCore.StaticWebAssets.props
