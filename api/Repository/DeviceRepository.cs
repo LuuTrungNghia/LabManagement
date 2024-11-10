@@ -1,6 +1,7 @@
 using api.Data;
 using api.Dtos.Device;
 using api.Interfaces;
+using api.Mappers;
 using api.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,13 +16,13 @@ namespace api.Repositories
             _context = context;
         }
 
-        public async Task<IEnumerable<Device>> GetAllAsync() => await _context.Devices.ToListAsync();
+        public async Task<IEnumerable<Device>> GetAllAsync() => await _context.Devices.Include(d => d.DeviceItems).ToListAsync();
 
-        public async Task<Device?> GetByIdAsync(int id) => await _context.Devices.FindAsync(id);
+        public async Task<Device?> GetByIdAsync(int id) => await _context.Devices.Include(d => d.DeviceItems).FirstOrDefaultAsync(d => d.DeviceId == id);
 
         public async Task CreateAsync(Device device)
         {
-            await _context.Devices.AddAsync(device);
+            _context.Devices.Add(device);
             await _context.SaveChangesAsync();
         }
 
@@ -29,14 +30,9 @@ namespace api.Repositories
         {
             var device = await GetByIdAsync(id);
             if (device == null) return null;
-
-            device.DeviceName = deviceDto.DeviceName;
-            device.Quantity = deviceDto.Quantity;
-            device.DeviceStatus = Enum.Parse<DeviceStatus>(deviceDto.DeviceStatus);
-
+            device = deviceDto.ToDevice(device);        
             _context.Devices.Update(device);
             await _context.SaveChangesAsync();
-
             return device;
         }
 

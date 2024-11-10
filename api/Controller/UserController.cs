@@ -57,7 +57,6 @@ namespace api.Controllers
             return BadRequest(result.Errors);
         }
 
-
         [HttpPost("login")]        
         public async Task<IActionResult> Login(LoginUserDto loginDto)
         {
@@ -81,6 +80,7 @@ namespace api.Controllers
         }
 
         [HttpGet("get/{username}")]
+        //[Authorize(Roles = "admin, active")]
         public async Task<IActionResult> GetUser(string username)
         {
             var user = await _userManager.FindByNameAsync(username) as ApplicationUser;
@@ -97,7 +97,6 @@ namespace api.Controllers
                 Roles = await _userManager.GetRolesAsync(user)
             });
         }
-
 
         [HttpGet("get-all")]
         //[Authorize(Roles = "admin")]
@@ -191,7 +190,7 @@ namespace api.Controllers
             var user = await _userManager.FindByNameAsync(username);
             if (user == null) return NotFound("User not found.");
 
-            if (role != "student" && role != "lecturer")
+            if (role != "student" && role != "lecturer" && role != "admin")
                 return BadRequest("Invalid role. Please specify 'student' or 'lecturer'.");
 
             await _userManager.AddToRoleAsync(user, role);

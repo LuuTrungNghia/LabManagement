@@ -12,11 +12,13 @@ namespace api.Controllers
     public class DevicesController : ControllerBase
     {
         private readonly IDeviceRepository _deviceRepo;
+        private readonly ICategoryRepository _categoryRepo;
         private readonly ILogger<DevicesController> _logger;
 
-        public DevicesController(IDeviceRepository deviceRepo, ILogger<DevicesController> logger)
+        public DevicesController(IDeviceRepository deviceRepo, ICategoryRepository categoryRepo, ILogger<DevicesController> logger)
         {
             _deviceRepo = deviceRepo;
+            _categoryRepo = categoryRepo;
             _logger = logger;
         }
 
@@ -35,13 +37,7 @@ namespace api.Controllers
             if (device == null)
             {
                 _logger.LogWarning("Device with ID {DeviceId} not found.", id);
-                return NotFound(new ProblemDetails
-                {
-                    Status = StatusCodes.Status404NotFound,
-                    Title = "Device Not Found",
-                    Detail = $"Device with ID {id} was not found.",
-                    Instance = HttpContext.Request.Path
-                });
+                return NotFound();
             }
 
             return Ok(device.ToDeviceDto());
@@ -55,12 +51,98 @@ namespace api.Controllers
                 _logger.LogWarning("Invalid model state for creating a device.");
                 return BadRequest(ModelState);
             }
+            
+            var category = await _categoryRepo.GetByIdAsync(deviceDto.CategoryId);
+            if (category == null)
+            {
+                _logger.LogWarning("Category with ID {CategoryId} not found.", deviceDto.CategoryId);
+                return BadRequest($"Category with ID {deviceDto.CategoryId} not found.");
+            }
 
             var device = deviceDto.ToDevice();
             await _deviceRepo.CreateAsync(device);
 
-            _logger.LogInformation("Device created with ID {DeviceId}", device.Id);
-            return CreatedAtAction(nameof(GetById), new { id = device.Id }, device);
+            _logger.LogInformation("Device created with ID {DeviceId}", device.DeviceId);
+            return CreatedAtAction(nameof(GetById), new { id = device.DeviceId }, device.ToDeviceDto());
+        }
+
+        [HttpPost("{deviceId:int}/add-device-item")]
+        public async Task<IActionResult> AddDeviceItem(int deviceId, [FromBody] CreateDeviceItemDto deviceItemDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("Invalid model state for adding a device item.");
+                return BadRequest(ModelState);
+            }
+
+            var device = await _deviceRepo.GetByIdAsync(deviceId);
+            if (device == null)
+            {
+                _logger.LogWarning("Device with ID {DeviceId} not found for adding item.", deviceId);
+                return NotFound();
+            }
+
+            var deviceItem = DeviceItemMapper.ToDeviceItem(deviceItemDto);
+            device.DeviceItems.Add(deviceItem);
+            await _deviceRepo.UpdateAsync(deviceId, device.ToUpdateDeviceRequestDto());
+
+            _logger.LogInformation("Device item added to device with ID {DeviceId}", deviceId);
+            return Ok(deviceItem.ToDeviceItemDto());
+        }
+        
+        [HttpDelete("delete-device-item/{deviceId:int}/{deviceItemId:int}")]
+        public async Task<IActionResult> DeleteDeviceItem(int deviceId, int deviceItemId)
+        {
+            var device = await _deviceRepo.GetByIdAsync(deviceId);
+            if (device == null)
+            {
+                _logger.LogWarning("Device with ID {DeviceId} not found for deleting item.", deviceId);
+                return NotFound();
+            }
+
+            var deviceItem = device.DeviceItems.FirstOrDefault(item => item.DeviceItemId == deviceItemId);
+            if (deviceItem == null)
+            {
+                _logger.LogWarning("Device item with ID {DeviceItemId} not found in device with ID {DeviceId}.", deviceItemId, deviceId);
+                return NotFound();
+            }
+
+            device.DeviceItems.Remove(deviceItem);
+            await _deviceRepo.UpdateAsync(deviceId, device.ToUpdateDeviceRequestDto());
+
+            _logger.LogInformation("Device item with ID {DeviceItemId} deleted from device with ID {DeviceId}", deviceItemId, deviceId);
+            return NoContent();
+        }
+
+        [HttpPost("add-category")]
+        public async Task<IActionResult> AddCategory([FromBody] CreateCategoryDto categoryDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("Invalid model state for adding a category.");
+                return BadRequest(ModelState);
+            }
+
+            var category = categoryDto.ToCategory();
+            await _categoryRepo.CreateAsync(category);
+
+            _logger.LogInformation("Category created with ID {CategoryId}", category.CategoryId);
+
+            // Correct the route reference to the CategoriesController's GetCategoryById action
+            return CreatedAtAction(nameof(GetCategoryById), new { categoryId = category.CategoryId }, category.ToCategoryDto());
+        }
+
+        [HttpGet("category/{categoryId:int}")]
+        public async Task<IActionResult> GetCategoryById(int categoryId)
+        {
+            var category = await _categoryRepo.GetByIdAsync(categoryId);
+            if (category == null)
+            {
+                _logger.LogWarning("Category with ID {CategoryId} not found.", categoryId);
+                return NotFound();
+            }
+
+            return Ok(category.ToCategoryDto());
         }
 
         [HttpPut("update/{id:int}")]
@@ -95,6 +177,22 @@ namespace api.Controllers
 
             _logger.LogInformation("Device with ID {DeviceId} deleted.", id);
             return NoContent();
+        }
+
+        [HttpPost("import")]
+        public async Task<IActionResult> ImportDevices([FromBody] IEnumerable<CreateDeviceRequestDto> deviceDtos)
+        {
+            if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("Invalid model state for importing devices.");
+                return BadRequest(ModelState);
+            }
+
+            var devices = deviceDtos.Select(dto => dto.ToDevice()).ToList();
+            await _deviceRepo.ImportDevices(devices);
+
+            _logger.LogInformation("{Count} devices imported successfully.", devices.Count);
+            return Ok(devices.Select(d => d.ToDeviceDto()));
         }
     }
 }

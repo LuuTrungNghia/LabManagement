@@ -1,18 +1,22 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace api.Models
 {
     public class Device
     {
-        public int Id { get; set; }
+        public int DeviceId { get; set; }
 
         [Required]
         public string DeviceName { get; set; } = string.Empty;
 
-        [Required]
-        public int Quantity { get; set; }
+        public int Total => DeviceItems?.Count ?? 0;
+        
+        public int CategoryId { get; set; }
 
-        [Required]
-        public DeviceStatus DeviceStatus { get; set; }
+        [ForeignKey("CategoryId")]
+        public Category Category { get; set; }
+
+        public List<DeviceItem> DeviceItems { get; set; } = new();
     }
 }

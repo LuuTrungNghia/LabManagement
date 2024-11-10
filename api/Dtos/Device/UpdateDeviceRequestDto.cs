@@ -6,8 +6,8 @@ namespace api.Dtos.Device
     {
         [Required]
         public string DeviceName { get; set; } = string.Empty;
+
         [Required]
-        public int Quantity { get; set; }
-        public string DeviceStatus { get; set; } = string.Empty;
+        public int CategoryId { get; set; }
     }
 }
