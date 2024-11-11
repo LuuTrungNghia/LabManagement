@@ -1,16 +1,26 @@
-public class ServiceResultDto<T>
+namespace api.Models
 {
-    public bool IsSuccess { get; private set; }
-    public string Message { get; private set; }
-    public T Data { get; private set; }
-
-    public static ServiceResultDto<T> Success(T data)
+    public class ServiceResultDto<T>
     {
-        return new ServiceResultDto<T> { IsSuccess = true, Data = data };
-    }
+        public bool IsSuccess { get; private set; }
+        public string Message { get; private set; }
+        public T Data { get; private set; }
 
-    public static ServiceResultDto<T> Failure(string message, T data = default)
-    {
-        return new ServiceResultDto<T> { IsSuccess = false, Message = message, Data = data };
+        private ServiceResultDto(bool isSuccess, string message, T data)
+        {
+            IsSuccess = isSuccess;
+            Message = message;
+            Data = data;
+        }
+
+        public static ServiceResultDto<T> Success(T data, string message = null)
+        {
+            return new ServiceResultDto<T>(true, message, data);
+        }
+
+        public static ServiceResultDto<T> Failure(string message, T data = default)
+        {
+            return new ServiceResultDto<T>(false, message, data);
+        }
     }
 }

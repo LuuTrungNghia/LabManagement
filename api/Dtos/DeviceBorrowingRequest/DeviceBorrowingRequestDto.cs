@@ -1,15 +1,18 @@
-using System.ComponentModel.DataAnnotations;
+// using api.Models;
 
-namespace api.Dtos.DeviceBorrowingRequest
-{
-    public class DeviceBorrowingRequestDto
-    {
-        public int Id { get; set; }
-        public int DeviceId { get; set; }
-        public string DeviceName { get; set; }
-        public string UserName { get; set; }
-        public DateTime BorrowDate { get; set; }
-        public DateTime? ReturnDate { get; set; }
-        public string Status { get; set; }
-    }
-}
+// namespace api.Dtos.DeviceBorrowing
+// {
+//     public class DeviceBorrowingRequestDto
+//     {
+//         public int DeviceBorrowingRequestId { get; set; }
+//         public int DeviceId { get; set; }
+//         public string DeviceName { get; set; } = string.Empty;
+//         public int RequestedQuantity { get; set; }
+//         public DateTime FromDate { get; set; }
+//         public DateTime ToDate { get; set; }
+//         public DateTime? ApprovedDate { get; set; }
+//         public DeviceItemStatus Status { get; set; }
+//         public bool IsReturned { get; set; }
+//         public DateTime? ReturnDate { get; set; }
+//     }
+// }

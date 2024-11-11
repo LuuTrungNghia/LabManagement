@@ -11,7 +11,7 @@ namespace api.Models
         public string DeviceItemName { get; set; }
 
         [Required]
-        public DeviceItemStatus DeviceItemStatus { get; set; } = DeviceItemStatus.Good;
+        public DeviceItemStatus DeviceItemStatus { get; set; } = DeviceItemStatus.Available;
 
         public string Description { get; set; } = string.Empty;
 
@@ -24,9 +24,10 @@ namespace api.Models
     }
     public enum DeviceItemStatus
     {
-        Good = 1,
-        Broken = 2,
-        Available = 3,
-        Borrowed = 4
+        
+        Broken,
+        Available,
+        Borrowed,
+        Requested
     }
 }

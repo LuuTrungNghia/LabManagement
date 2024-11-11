@@ -1,15 +1,14 @@
 using api;
 using api.Data;
 using api.Interfaces;
+using api.Mappers;
+using api.Models;
 using api.Repositories;
 using api.Services;
-using api.Models;
-using api.Mappers;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
@@ -19,8 +18,6 @@ var builder = WebApplication.CreateBuilder(args);
 // Configure logging
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
-
-// Add services to the container
 builder.Services.AddControllers();
 
 // Configure database connection
@@ -39,7 +36,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();
 
-// Add JWT authentication
+// Configure JWT authentication
 var key = Encoding.UTF8.GetBytes(builder.Configuration["JWT:SigningKey"]);
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -93,18 +90,17 @@ builder.Services.AddSwaggerGen(options =>
         }
     });
 });
+builder.Services.AddEndpointsApiExplorer();
 
 // Register custom repositories and services for dependency injection
 builder.Services.AddScoped<IDeviceRepository, DeviceRepository>();
-//builder.Services.AddScoped<ILabRepository, LabRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ITokenService, TokenService>();
-builder.Services.AddScoped<RoleManager<IdentityRole>>();
-//builder.Services.AddScoped<IDeviceBorrowingService, DeviceBorrowingService>();
-builder.Services.AddScoped<IDeviceBorrowingRequestRepository, DeviceBorrowingRequestRepository>();
+// builder.Services.AddScoped<DeviceBorrowingService>();
+// builder.Services.AddScoped<IDeviceBorrowingRequestRepository, DeviceBorrowingRequestRepository>();
 
 // Register AutoMapper
-builder.Services.AddAutoMapper(typeof(DeviceBorrowingRequestMapper));
+// builder.Services.AddAutoMapper(typeof(DeviceBorrowingRequestMapper));
 
 // Add Authorization services
 builder.Services.AddAuthorization();

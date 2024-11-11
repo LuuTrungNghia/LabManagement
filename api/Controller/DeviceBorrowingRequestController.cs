@@ -1,7 +1,7 @@
-// using api.Dtos.DeviceBorrowingRequest;
-// using api.Interfaces;
+// using api.Dtos.Device;
+// using api.Dtos.DeviceBorrowing;
+// using api.Services;
 // using Microsoft.AspNetCore.Mvc;
-// using System.Threading.Tasks;
 
 // namespace api.Controllers
 // {
@@ -9,52 +9,43 @@
 //     [Route("api/[controller]")]
 //     public class DeviceBorrowingRequestsController : ControllerBase
 //     {
-//         private readonly IDeviceBorrowingService _deviceBorrowingService;
+//         private readonly DeviceBorrowingService _service;
 
-//         public DeviceBorrowingRequestsController(IDeviceBorrowingService deviceBorrowingService)
+//         public DeviceBorrowingRequestsController(DeviceBorrowingService service)
 //         {
-//             _deviceBorrowingService = deviceBorrowingService;
+//             _service = service;
 //         }
 
-//         [HttpPost("borrow")]
-//         public async Task<IActionResult> BorrowDevice([FromBody] RequestBorrowingDeviceDto dto)
+//         // Tạo yêu cầu mượn thiết bị
+//         [HttpPost("create")]
+//         public async Task<IActionResult> CreateRequest([FromBody] CreateDeviceBorrowingRequestDto dto)
 //         {
-//             var result = await _deviceBorrowingService.BorrowDeviceAsync(dto);
-            
-//             if (!result.Success)
-//                 return BadRequest(new { message = result.Message, code = "DEVICE_BORROW_FAILED" });
-
-//             return CreatedAtAction(nameof(GetRequestById), new { id = result.Id }, result.Data);
+//             await _service.CreateRequestAsync(dto);
+//             return Ok();
 //         }
 
-//         [HttpPut("update-status")]
-//         public async Task<IActionResult> UpdateRequestStatus([FromBody] UpdateRequestStatusDto dto)
+//         // Phê duyệt yêu cầu mượn thiết bị
+//         [HttpPut("approve/{id}")]
+//         public async Task<IActionResult> ApproveRequest(int id, [FromQuery] string approvedById)
 //         {
-//             var result = await _deviceBorrowingService.UpdateRequestStatusAsync(dto);
-//             if (!result.Success)
-//                 return BadRequest(new { message = result.Message, code = "STATUS_UPDATE_FAILED" });
-
-//             return Ok(result.Data);
+//             await _service.ApproveRequestAsync(id, approvedById);
+//             return Ok();
 //         }
 
-//         [HttpGet("{id}")]
-//         public async Task<IActionResult> GetRequestById(int id)
+//         // Xác nhận trả thiết bị
+//         [HttpPut("confirm-return/{id}")]
+//         public async Task<IActionResult> ConfirmReturn(int id)
 //         {
-//             var result = await _deviceBorrowingService.GetRequestByIdAsync(id);
-//             if (!result.Success)
-//                 return NotFound(new { message = result.Message, code = "REQUEST_NOT_FOUND" });
-
-//             return Ok(result.Data);
+//             await _service.ConfirmReturnAsync(id);
+//             return Ok();
 //         }
 
-//         [HttpGet("history/{userName}")]
-//         public async Task<IActionResult> GetBorrowingHistory(string userName)
+//         // Lấy lịch sử mượn thiết bị
+//         [HttpGet("history")]
+//         public async Task<IActionResult> GetHistory()
 //         {
-//             var result = await _deviceBorrowingService.GetBorrowingHistoryAsync(userName);
-//             if (!result.Success)
-//                 return NotFound(new { message = result.Message, code = "HISTORY_NOT_FOUND" });
-
-//             return Ok(result.Data);
+//             var history = await _service.GetHistoryAsync();
+//             return Ok(history);
 //         }
 //     }
 // }

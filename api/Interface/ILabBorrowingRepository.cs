@@ -4,7 +4,7 @@
 // {
 //     public interface ILabBorrowingRepository
 //     {
-//         Task<LabBorrowing?> CreateAsync(LabBorrowing borrowing);
+//         Task<LabBorrowingRequest?> CreateAsync(LabBorrowing borrowing);
 //         Task<IEnumerable<LabBorrowing>> GetAllByUserAsync(string userName);
 //         Task<LabBorrowing?> ApproveAsync(int id);
 //     }

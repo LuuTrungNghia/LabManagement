@@ -7,11 +7,18 @@ namespace api.Mappers
     {
         public static DeviceDto ToDeviceDto(this Device device) => new DeviceDto
         {
+            DeviceName = device.DeviceName,
+            Total = device.Total,
+            CategoryName = device.CategoryId,
+        };
+
+        public static DeviceDetailDto ToDeviceDetailDto(this Device device) => new DeviceDetailDto
+        {
             Id = device.DeviceId,
             DeviceName = device.DeviceName,
             Total = device.Total,
-            CategoryId = device.CategoryId,
-            DeviceItems = device.DeviceItems.Select(item => item.ToDeviceItemDto()).ToList()
+            CategoryName = device.CategoryId,
+            DeviceItems = device.DeviceItems.Select(item => item.ToDeviceItemDto()).ToList() // Assuming DeviceItems are part of the Device model
         };
 
         public static Device ToDevice(this CreateDeviceRequestDto dto) => new Device

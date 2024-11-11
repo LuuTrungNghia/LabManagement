@@ -40,7 +40,7 @@ namespace api.Controllers
                 return NotFound();
             }
 
-            return Ok(device.ToDeviceDto());
+            return Ok(device.ToDeviceDetailDto());
         }
 
         [HttpPost("create")]

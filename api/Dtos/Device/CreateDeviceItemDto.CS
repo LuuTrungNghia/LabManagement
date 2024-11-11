@@ -9,7 +9,7 @@ namespace api.Dtos.Device
         public string DeviceItemName { get; set; } = string.Empty;
 
         [Required]
-        public DeviceItemStatus DeviceItemStatus { get; set; } = DeviceItemStatus.Good;
+        public DeviceItemStatus DeviceItemStatus { get; set; } = DeviceItemStatus.Available;
 
         public string Description { get; set; } = string.Empty;
     }

@@ -1,102 +1,74 @@
-// using api.Dtos;
-// using api.Dtos.DeviceBorrowingRequest;
+// using api.Dtos.Device;
+// using api.Dtos.DeviceBorrowing;
 // using api.Interfaces;
+// using api.Mappers;
 // using api.Models;
-// using AutoMapper;
+// using Microsoft.AspNetCore.Identity;
+// using System;
 // using System.Collections.Generic;
 // using System.Linq;
 // using System.Threading.Tasks;
 
 // namespace api.Services
 // {
-//     public class DeviceBorrowingService : IDeviceBorrowingService
+//     public class DeviceBorrowingService
 //     {
-//         private readonly IDeviceRepository _deviceRepository;
 //         private readonly IDeviceBorrowingRequestRepository _repository;
-//         private readonly IMapper _mapper;
+//         private readonly IDeviceRepository _deviceRepository;
+//         private readonly UserManager<ApplicationUser> _userManager;
 
-//         public DeviceBorrowingService(IDeviceRepository deviceRepository, IDeviceBorrowingRequestRepository repository, IMapper mapper)
+//         public DeviceBorrowingService(IDeviceBorrowingRequestRepository repository, IDeviceRepository deviceRepository, UserManager<ApplicationUser> userManager)
 //         {
-//             _deviceRepository = deviceRepository;
 //             _repository = repository;
-//             _mapper = mapper;
+//             _deviceRepository = deviceRepository;
+//             _userManager = userManager;
 //         }
 
-//         public async Task<ServiceResultDto<DeviceBorrowingRequestDto>> BorrowDeviceAsync(RequestBorrowingDeviceDto dto)
+//         public async Task CreateRequestAsync(CreateDeviceBorrowingRequestDto dto)
 //         {
-//             var requestList = new List<DeviceBorrowingRequest>();
-//             var notAvailableDevices = new List<int>();
-            
-//             foreach (var deviceId in dto.DeviceIds)
+//             var request = new DeviceBorrowingRequest
 //             {
-//                 var device = await _deviceRepository.GetByIdAsync(deviceId);
-//                 if (device == null || device.DeviceItems.Count <= 0)
-//                 {
-//                     notAvailableDevices.Add(deviceId);
-//                     continue;
-//                 }
+//                 DeviceId = dto.DeviceId,
+//                 RequestedQuantity = dto.RequestedQuantity,
+//                 FromDate = dto.FromDate,
+//                 ToDate = dto.ToDate,
+//                 Status = DeviceItemStatus.Available
+//             };
 
-//                 var request = new DeviceBorrowingRequest
-//                 {
-//                     DeviceId = deviceId,
-//                     UserName = dto.UserName,
-//                     BorrowDate = dto.BorrowDate,
-//                     Status = "Pending"
-//                 };
-                
-//                 await _repository.CreateRequestAsync(request);
-//                 requestList.Add(request);
-
-//                 var borrowedDeviceItem = device.DeviceItems.FirstOrDefault();
-//                 if (borrowedDeviceItem != null)
-//                 {
-//                     device.DeviceItems.Remove(borrowedDeviceItem);
-//                 }
-                
-//                 var updateDeviceStatus = device.DeviceItems.Count == 0 ? "Borrowed" : "Partially Borrowed";
-//                 await _deviceRepository.UpdateDeviceStatusAsync(deviceId, updateDeviceStatus);
-//             }
-            
-//             if (notAvailableDevices.Any())
-//                 return ServiceResultDto<DeviceBorrowingRequestDto>.Failure("Some devices are unavailable.", null);
-            
-//             var resultDto = _mapper.Map<DeviceBorrowingRequestDto>(requestList);
-//             return ServiceResultDto<DeviceBorrowingRequestDto>.Success(resultDto);
+//             await _repository.CreateAsync(request);
 //         }
 
-//         public async Task<ServiceResultDto<DeviceBorrowingRequestDto>> UpdateRequestStatusAsync(UpdateRequestStatusDto dto)
+//         public async Task ApproveRequestAsync(int requestId, string approvedById)
 //         {
-//             var request = await _repository.GetRequestByIdAsync(dto.RequestId);
-//             if (request == null)
-//                 return ServiceResultDto<DeviceBorrowingRequestDto>.Failure("Request not found", null);
+//             var request = await _repository.GetByIdAsync(requestId);
+//             if (request == null) return;
 
-//             await _repository.UpdateRequestStatusAsync(dto.RequestId, dto.Status);
-//             var resultDto = _mapper.Map<DeviceBorrowingRequestDto>(request);
-//             return ServiceResultDto<DeviceBorrowingRequestDto>.Success(resultDto);
+//             var approvedUser = await _userManager.FindByIdAsync(approvedById);
+//             if (approvedUser == null) return;
+
+//             request.Status = DeviceItemStatus.Borrowed;
+//             request.ApprovedDate = DateTime.Now;
+//             request.ApprovedById = approvedById;
+
+//             await _repository.UpdateAsync(request);
 //         }
 
-//         public async Task<ServiceResultDto<DeviceBorrowingRequestDto>> GetRequestByIdAsync(int requestId)
+//         public async Task ConfirmReturnAsync(int requestId)
 //         {
-//             var request = await _repository.GetRequestByIdAsync(requestId);
-//             if (request == null)
-//                 return ServiceResultDto<DeviceBorrowingRequestDto>.Failure("Request not found", null);
+//             var request = await _repository.GetByIdAsync(requestId);
+//             if (request == null) return;
 
-//             var resultDto = _mapper.Map<DeviceBorrowingRequestDto>(request);
-//             return ServiceResultDto<DeviceBorrowingRequestDto>.Success(resultDto);
+//             request.IsReturned = true;
+//             request.ReturnDate = DateTime.Now;
+//             request.Status = DeviceItemStatus.Available;
+
+//             await _repository.UpdateAsync(request);
 //         }
 
-//         public async Task<ServiceResultDto<IEnumerable<DeviceBorrowingRequestDto>>> GetAllRequestsAsync()
+//         public async Task<IEnumerable<DeviceBorrowingRequestDto>> GetHistoryAsync()
 //         {
-//             var requests = await _repository.GetAllRequestsAsync();
-//             var resultDto = _mapper.Map<IEnumerable<DeviceBorrowingRequestDto>>(requests);
-//             return ServiceResultDto<IEnumerable<DeviceBorrowingRequestDto>>.Success(resultDto);
-//         }
-
-//         public async Task<ServiceResultDto<IEnumerable<DeviceBorrowingRequestDto>>> GetBorrowingHistoryAsync(string userName)
-//         {
-//             var requests = await _repository.GetBorrowingHistoryAsync(userName);
-//             var resultDto = _mapper.Map<IEnumerable<DeviceBorrowingRequestDto>>(requests);
-//             return ServiceResultDto<IEnumerable<DeviceBorrowingRequestDto>>.Success(resultDto);
+//             var requests = await _repository.GetAllAsync();
+//             return requests.Select(r => r.ToDto()).ToList();
 //         }
 //     }
 // }
