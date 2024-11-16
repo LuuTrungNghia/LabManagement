@@ -1,40 +1,21 @@
-// using System;
-// using System.ComponentModel.DataAnnotations;
-// using System.ComponentModel.DataAnnotations.Schema;
+// using api.Models;
 // using Microsoft.AspNetCore.Identity;
 
-// namespace api.Models
+// public class DeviceBorrowingRequest
 // {
-//     public class DeviceBorrowingRequest
-//     {
-//         public int DeviceBorrowingRequestId { get; set; }
+//     public int Id { get; set; }
+//     public string RequesterId { get; set; } // ID của sinh viên hoặc giảng viên
+//     public string DeviceName { get; set; } // Tên thiết bị
+//     public string DeviceType { get; set; } // Loại thiết bị
+//     public int RequestedQuantity { get; set; } // Số lượng đăng ký
+//     public int ActualBorrowedQuantity { get; set; } // Số lượng mượn thực tế
+//     public DateTime FromDate { get; set; } // Thời gian bắt đầu mượn
+//     public DateTime ToDate { get; set; } // Thời gian kết thúc mượn
+//     public string Status { get; set; } = "Pending"; // Trạng thái (Pending, Approved, Returned)
+//     public string ConditionOnReturn { get; set; } // Tình trạng thiết bị khi trả
+//     public DateTime? ApprovalDate { get; set; } // Ngày phê duyệt
+//     public DateTime? ReturnDate { get; set; } // Ngày hoàn trả
 
-//         [Required]
-//         public int DeviceId { get; set; }
-
-//         [ForeignKey("DeviceId")]
-//         public Device Device { get; set; }
-
-//         [Required]
-//         public int RequestedQuantity { get; set; }
-
-//         [Required]
-//         public DateTime FromDate { get; set; }
-
-//         [Required]
-//         public DateTime ToDate { get; set; }
-
-//         public DateTime? ApprovedDate { get; set; }
-
-//         public DeviceItemStatus Status { get; set; } = DeviceItemStatus.Requested;
-
-//         public string? ApprovedById { get; set; }
-
-//         [ForeignKey("ApprovedById")]
-//         public IdentityUser? ApprovedUser { get; set; }
-
-//         public bool IsReturned { get; set; } = false;
-
-//         public DateTime? ReturnDate { get; set; }
-//     }
+//     public virtual IdentityUser User { get; set; } // Sinh viên hoặc giảng viên
+//     public virtual Device Device { get; set; }
 // }

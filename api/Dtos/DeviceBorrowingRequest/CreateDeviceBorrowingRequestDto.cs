@@ -1,17 +1,8 @@
-// using System.ComponentModel.DataAnnotations;
-
-// namespace api.Dtos.Device
+// public class CreateDeviceBorrowingRequestDto
 // {
-//     public class CreateDeviceBorrowingRequestDto
-//     {
-//         [Required]
-//         public int DeviceId { get; set; }
-//         [Required]
-//         public int RequestedQuantity { get; set; }
-//         [Required]
-//         public DateTime FromDate { get; set; }
-//         [Required]
-//         public DateTime ToDate { get; set; }
-//         public string Description { get; set; } = string.Empty;
-//     }
+//     public string RequesterId { get; set; }
+//     public int DeviceId { get; set; }
+//     public int RequestedQuantity { get; set; }
+//     public DateTime FromDate { get; set; }
+//     public DateTime ToDate { get; set; }
 // }

@@ -9,7 +9,7 @@ namespace api.Data
     {
          public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options){}
         public DbSet<Device> Devices { get; set; }
-        //public DbSet<DeviceBorrowingRequest> DeviceBorrowingRequests { get; set; }
+        // public DbSet<DeviceBorrowingRequest> DeviceBorrowingRequests { get; set; }
         public DbSet<DeviceItem> DeviceItems { get; set; }
         public DbSet<Category> Categories { get; set; }
 

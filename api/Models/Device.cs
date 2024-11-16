@@ -22,6 +22,11 @@ namespace api.Models
 
         public List<DeviceItem> DeviceItems { get; set; } = new();
 
-        public DeviceItemStatus DeviceStatus { get; set; } = DeviceItemStatus.Available; 
+        public DeviceItemStatus DeviceStatus { get; set; } = DeviceItemStatus.Available;
+
+        internal object? ToDeviceDto()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -80,7 +80,7 @@ namespace api.Controllers
         }
 
         [HttpGet("get/{username}")]
-        //[Authorize(Roles = "admin, active")]
+        [Authorize(Roles = "admin, active")]
         public async Task<IActionResult> GetUser(string username)
         {
             var user = await _userManager.FindByNameAsync(username) as ApplicationUser;
@@ -99,7 +99,7 @@ namespace api.Controllers
         }
 
         [HttpGet("get-all")]
-        //[Authorize(Roles = "admin")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> GetAllUsers()
         {
             var users = await _userManager.Users.ToListAsync();
@@ -120,7 +120,7 @@ namespace api.Controllers
         }
 
         [HttpPut("update/{username}")]
-        //[Authorize(Roles = "admin,active")]
+        [Authorize(Roles = "admin,active")]
         public async Task<IActionResult> UpdateUser(string username, UpdateUserDto updateUserDto)
         {
             var user = await _userManager.FindByNameAsync(username);
@@ -172,7 +172,7 @@ namespace api.Controllers
         }
 
         [HttpDelete("delete/{username}")]
-        //[Authorize(Roles = "admin")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> DeleteUser(string username)
         {
             var user = await _userManager.FindByNameAsync(username);
@@ -184,7 +184,7 @@ namespace api.Controllers
         }
 
         [HttpPut("approve/{username}")]
-        //[Authorize(Roles = "admin")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> ApproveUser(string username, [FromQuery] string role)
         {
             var user = await _userManager.FindByNameAsync(username);

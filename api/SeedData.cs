@@ -8,33 +8,33 @@ namespace api
         public static async Task Initialize(IServiceProvider services, UserManager<ApplicationUser> userManager)
         {
             var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
-            string[] roleNames = { "admin", "user", "lecturer", "student" };
+            string[] roleNames = { "admin", "user", "active" };
+
             foreach (var roleName in roleNames)
             {
-                var roleExist = await roleManager.RoleExistsAsync(roleName);
-                if (!roleExist)
+                if (!await roleManager.RoleExistsAsync(roleName))
                 {
                     await roleManager.CreateAsync(new IdentityRole(roleName));
                 }
             }
-            var user = await userManager.FindByEmailAsync("admin@example.com");
 
-            if (user == null)
+            var admin = await userManager.FindByEmailAsync("admin@example.com");
+            if (admin == null)
             {
-                user = new ApplicationUser
+                admin = new ApplicationUser
                 {
                     UserName = "admin",
                     Email = "admin@example.com",
-                    FullName = "Admin User",
+                    FullName = "Administrator",
                     Avatar = "default-avatar.png",
                     DateOfBirth = DateTime.Parse("1990-01-01"),
                     Gender = "Male"
                 };
 
-                var result = await userManager.CreateAsync(user, "Admin@123");
+                var result = await userManager.CreateAsync(admin, "Admin@123");
                 if (result.Succeeded)
                 {
-                    await userManager.AddToRoleAsync(user, "admin");
+                    await userManager.AddToRoleAsync(admin, "admin");
                 }
             }
         }

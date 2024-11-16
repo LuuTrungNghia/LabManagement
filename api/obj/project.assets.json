@@ -5285,11 +5285,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\LabManagement\\LabManagement\\api\\api.csproj",
+      "projectUniqueName": "D:\\LabManagement\\api\\api.csproj",
       "projectName": "api",
-      "projectPath": "D:\\LabManagement\\LabManagement\\api\\api.csproj",
+      "projectPath": "D:\\LabManagement\\api\\api.csproj",
       "packagesPath": "C:\\Users\\nunoo\\.nuget\\packages\\",
-      "outputPath": "D:\\LabManagement\\LabManagement\\api\\obj\\",
+      "outputPath": "D:\\LabManagement\\api\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

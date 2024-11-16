@@ -2,6 +2,7 @@ using api.Dtos.Device;
 using api.Interfaces;
 using api.Mappers;
 using api.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -23,14 +24,25 @@ namespace api.Controllers
         }
 
         [HttpGet("get-all")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> GetAll()
         {
             _logger.LogInformation("Fetching all devices.");
+            
             var devices = await _deviceRepo.GetAllAsync();
-            return Ok(devices.Select(d => d.ToDeviceDto()));
+            var categories = await _categoryRepo.GetAllAsync();
+            
+            var result = devices.Select(d => 
+            {
+                var categoryName = categories.FirstOrDefault(c => c.CategoryId == d.CategoryId)?.CategoryName ?? "Unknown";
+                return d.ToDeviceDto(categoryName);
+            });
+
+            return Ok(result);
         }
 
         [HttpGet("get-by-id/{id:int}")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> GetById(int id)
         {
             var device = await _deviceRepo.GetByIdAsync(id);
@@ -40,10 +52,14 @@ namespace api.Controllers
                 return NotFound();
             }
 
-            return Ok(device.ToDeviceDetailDto());
+            var category = await _categoryRepo.GetByIdAsync(device.CategoryId);
+            var categoryName = category?.CategoryName ?? "Unknown";
+
+            return Ok(device.ToDeviceDetailDto(categoryName));
         }
 
         [HttpPost("create")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> Create([FromBody] CreateDeviceRequestDto deviceDto)
         {
             if (!ModelState.IsValid)
@@ -63,10 +79,13 @@ namespace api.Controllers
             await _deviceRepo.CreateAsync(device);
 
             _logger.LogInformation("Device created with ID {DeviceId}", device.DeviceId);
-            return CreatedAtAction(nameof(GetById), new { id = device.DeviceId }, device.ToDeviceDto());
+
+            // Include CategoryName in the response
+            return CreatedAtAction(nameof(GetById), new { id = device.DeviceId }, device.ToDeviceDto(category.CategoryName));
         }
 
         [HttpPost("{deviceId:int}/add-device-item")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> AddDeviceItem(int deviceId, [FromBody] CreateDeviceItemDto deviceItemDto)
         {
             if (!ModelState.IsValid)
@@ -91,6 +110,7 @@ namespace api.Controllers
         }
         
         [HttpDelete("delete-device-item/{deviceId:int}/{deviceItemId:int}")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> DeleteDeviceItem(int deviceId, int deviceItemId)
         {
             var device = await _deviceRepo.GetByIdAsync(deviceId);
@@ -115,6 +135,7 @@ namespace api.Controllers
         }
 
         [HttpPost("add-category")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> AddCategory([FromBody] CreateCategoryDto categoryDto)
         {
             if (!ModelState.IsValid)
@@ -133,6 +154,7 @@ namespace api.Controllers
         }
 
         [HttpGet("category/{categoryId:int}")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> GetCategoryById(int categoryId)
         {
             var category = await _categoryRepo.GetByIdAsync(categoryId);
@@ -146,6 +168,7 @@ namespace api.Controllers
         }
 
         [HttpPut("update/{id:int}")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateDeviceRequestDto deviceDto)
         {
             if (!ModelState.IsValid)
@@ -166,6 +189,7 @@ namespace api.Controllers
         }
 
         [HttpDelete("delete/{id:int}")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> Delete(int id)
         {
             var deletedDevice = await _deviceRepo.DeleteAsync(id);
@@ -180,6 +204,7 @@ namespace api.Controllers
         }
 
         [HttpPost("import")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> ImportDevices([FromBody] IEnumerable<CreateDeviceRequestDto> deviceDtos)
         {
             if (!ModelState.IsValid)
