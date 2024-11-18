@@ -10,7 +10,7 @@ namespace api.Mappers
             Id = device.DeviceId,
             DeviceName = device.DeviceName,
             Total = device.Total,
-            CategoryName = categoryName, // Sử dụng CategoryName thay vì ID
+            CategoryName = categoryName,
         };
 
         public static DeviceDetailDto ToDeviceDetailDto(this Device device, string categoryName) => new DeviceDetailDto
@@ -18,7 +18,7 @@ namespace api.Mappers
             Id = device.DeviceId,
             DeviceName = device.DeviceName,
             Total = device.Total,
-            CategoryName = categoryName, // Sử dụng CategoryName thay vì ID
+            CategoryName = categoryName,
             DeviceItems = device.DeviceItems.Select(item => item.ToDeviceItemDto()).ToList()
         };
 

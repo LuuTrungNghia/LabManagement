@@ -163,9 +163,6 @@ D:\LabManagement\api\obj\Debug\net8.0\api.csproj.CoreCompileInputs.cache
 D:\LabManagement\api\obj\Debug\net8.0\api.MvcApplicationPartsAssemblyInfo.cs
 D:\LabManagement\api\obj\Debug\net8.0\api.MvcApplicationPartsAssemblyInfo.cache
 D:\LabManagement\api\obj\Debug\net8.0\api.sourcelink.json
-D:\LabManagement\api\obj\Debug\net8.0\api.dll
-D:\LabManagement\api\obj\Debug\net8.0\refint\api.dll
-D:\LabManagement\api\obj\Debug\net8.0\api.pdb
 D:\LabManagement\api\bin\Debug\net8.0\appsettings.Development.json
 D:\LabManagement\api\bin\Debug\net8.0\appsettings.json
 D:\LabManagement\api\bin\Debug\net8.0\api.exe
@@ -310,5 +307,8 @@ D:\LabManagement\api\obj\Debug\net8.0\staticwebassets\msbuild.buildTransitive.ap
 D:\LabManagement\api\obj\Debug\net8.0\staticwebassets.pack.json
 D:\LabManagement\api\obj\Debug\net8.0\scopedcss\bundle\api.styles.css
 D:\LabManagement\api\obj\Debug\net8.0\api.csproj.Up2Date
+D:\LabManagement\api\obj\Debug\net8.0\api.dll
+D:\LabManagement\api\obj\Debug\net8.0\refint\api.dll
+D:\LabManagement\api\obj\Debug\net8.0\api.pdb
 D:\LabManagement\api\obj\Debug\net8.0\api.genruntimeconfig.cache
 D:\LabManagement\api\obj\Debug\net8.0\ref\api.dll

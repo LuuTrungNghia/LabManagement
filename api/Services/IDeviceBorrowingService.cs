@@ -1,15 +1,10 @@
-// using System.Collections.Generic;
-// using System.Threading.Tasks;
-// using api.Models;
-
-// namespace api.Interfaces
-// {
-//     public interface IDeviceBorrowingService
-//     {
-//         Task<DeviceBorrowingRequest> GetRequestByIdAsync(int id);
-//         Task<IEnumerable<DeviceBorrowingRequest>> GetAllRequestsAsync();
-//         Task AddRequestAsync(DeviceBorrowingRequest request);
-//         Task UpdateRequestAsync(DeviceBorrowingRequest request);
-//         Task DeleteRequestAsync(int id);
-//     }
-// }
+public interface IDeviceBorrowingService
+{
+    Task<DeviceBorrowingRequestDto> CreateDeviceBorrowingRequest(CreateDeviceBorrowingRequestDto requestDto);
+    Task<List<DeviceBorrowingRequestDto>> GetDeviceBorrowingRequests();
+    Task<DeviceBorrowingRequestDto> GetDeviceBorrowingRequestById(int id);
+    Task<DeviceBorrowingRequestDto> UpdateDeviceBorrowingRequest(int id, UpdateDeviceBorrowingRequestDto requestDto);
+    Task<bool> ApproveDeviceBorrowingRequest(int id); 
+    Task<List<DeviceBorrowingRequestHistoryDto>> GetDeviceBorrowingHistory(string username);
+    Task<bool> ReturnDevice(DeviceReturnDto deviceReturnDto);
+}

@@ -1,6 +1,5 @@
-public class CreateDeviceBorrowingRequestDto
+public class UpdateDeviceBorrowingRequestDto
 {
-    public string Username { get; set; }
     public string Description { get; set; }
     public DateTime FromDate { get; set; }
     public DateTime ToDate { get; set; }

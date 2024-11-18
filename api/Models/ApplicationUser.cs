@@ -19,5 +19,9 @@ namespace api.Models
         [Required]
         [StringLength(10)]
         public string Gender { get; set; }
+
+        public ICollection<DeviceBorrowingRequest> DeviceBorrowingRequests { get; set; } = new List<DeviceBorrowingRequest>();
+
+        public ICollection<LabBorrowingRequest> LabBorrowingRequests { get; set; } = new List<LabBorrowingRequest>();
     }
 }

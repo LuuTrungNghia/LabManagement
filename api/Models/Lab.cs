@@ -1,19 +1,17 @@
-// using System.ComponentModel.DataAnnotations;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
-// namespace api.Models
-// {
-//     public class Lab
-//     {
-//         public int Id { get; set; }
+namespace api.Models
+{
+    public class Lab
+    {
+        public int LabId { get; set; }
 
-//         [Required]
-//         [MaxLength(100)]
-//         public string LabName { get; set; } = string.Empty;
+        [Required]
+        public string LabName { get; set; } = string.Empty;
 
-//         public string Description { get; set; } = string.Empty;
+        public ICollection<Device> Devices { get; set; } = new List<Device>();
 
-//         public string Location { get; set; } = string.Empty;
-
-//         public bool IsAvailable { get; set; }
-//     }
-// }
+        public ICollection<LabBorrowingRequest> LabBorrowingRequests { get; set; } = new List<LabBorrowingRequest>();
+    }
+}

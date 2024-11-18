@@ -184,8 +184,12 @@ namespace api.Controllers
                 return NotFound();
             }
 
+            // Lấy tên danh mục mới từ CategoryRepository
+            var category = await _categoryRepo.GetByIdAsync(updatedDevice.CategoryId);
+            var categoryName = category?.CategoryName ?? "Unknown";
+
             _logger.LogInformation("Device with ID {DeviceId} updated.", id);
-            return Ok(updatedDevice.ToDeviceDto());
+            return Ok(updatedDevice.ToDeviceDto(categoryName)); // Truyền categoryName vào
         }
 
         [HttpDelete("delete/{id:int}")]
@@ -216,8 +220,17 @@ namespace api.Controllers
             var devices = deviceDtos.Select(dto => dto.ToDevice()).ToList();
             await _deviceRepo.ImportDevices(devices);
 
+            // Lấy tất cả danh mục để sử dụng trong việc chuyển đổi
+            var categories = await _categoryRepo.GetAllAsync();
+            
+            var result = devices.Select(device =>
+            {
+                var categoryName = categories.FirstOrDefault(c => c.CategoryId == device.CategoryId)?.CategoryName ?? "Unknown";
+                return device.ToDeviceDto(categoryName); // Truyền categoryName vào
+            });
+
             _logger.LogInformation("{Count} devices imported successfully.", devices.Count);
-            return Ok(devices.Select(d => d.ToDeviceDto()));
+            return Ok(result);
         }
     }
 }

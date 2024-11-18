@@ -101,8 +101,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddScoped<IDeviceRepository, DeviceRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ITokenService, TokenService>();
-// builder.Services.AddScoped<IDeviceBorrowingService, DeviceBorrowingService>();
-// builder.Services.AddScoped<IDeviceBorrowingRequestRepository, DeviceBorrowingRequestRepository>();
+builder.Services.AddScoped<IDeviceBorrowingService, DeviceBorrowingService>();
+builder.Services.AddScoped<IDeviceBorrowingRepository, DeviceBorrowingRepository>();
 
 // Register AutoMapper
 // builder.Services.AddAutoMapper(typeof(DeviceBorrowingRequestMapper));

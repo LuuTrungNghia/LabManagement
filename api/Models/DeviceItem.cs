@@ -23,11 +23,9 @@ namespace api.Models
         public int? BorrowedByUserId { get; set; }
     }
     public enum DeviceItemStatus
-    {
-        
+    {        
         Broken,
         Available,
-        Borrowed,
-        Requested
+        Borrowed
     }
 }
