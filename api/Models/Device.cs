@@ -26,11 +26,11 @@ namespace api.Models
 
         public List<DeviceBorrowingDetail> DeviceBorrowingDetails { get; set; } = new List<DeviceBorrowingDetail>();
 
-        public ICollection<LabBorrowingDetail> LabBorrowingDetails { get; set; } = new List<LabBorrowingDetail>();
+        // public ICollection<LabBorrowingDetail> LabBorrowingDetails { get; set; } = new List<LabBorrowingDetail>();
 
-        public int LabId { get; set; } // Khóa ngoại đến Lab
+        // public int LabId { get; set; } // Khóa ngoại đến Lab
 
-        [ForeignKey("LabId")]
-        public Lab Lab { get; set; } // Quan hệ với Lab
+        // [ForeignKey("LabId")]
+        // public Lab Lab { get; set; } // Quan hệ với Lab
     }
 }

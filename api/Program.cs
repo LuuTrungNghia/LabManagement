@@ -1,6 +1,7 @@
 using api;
 using api.Data;
 using api.Interfaces;
+using api.MapperProfiles;
 using api.Mappers;
 using api.Models;
 using api.Repositories;
@@ -101,11 +102,16 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddScoped<IDeviceRepository, DeviceRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IDeviceService, DeviceService>();
 builder.Services.AddScoped<IDeviceBorrowingService, DeviceBorrowingService>();
 builder.Services.AddScoped<IDeviceBorrowingRepository, DeviceBorrowingRepository>();
+//builder.Services.AddScoped<ILabRepository, LabRepository>();
+//builder.Services.AddScoped<ILabService, LabService>();
+
 
 // Register AutoMapper
-// builder.Services.AddAutoMapper(typeof(DeviceBorrowingRequestMapper));
+builder.Services.AddAutoMapper(typeof(DeviceBorrowingMapper));
+builder.Services.AddAutoMapper(typeof(Program));
 
 // Add Authorization services
 builder.Services.AddAuthorization();

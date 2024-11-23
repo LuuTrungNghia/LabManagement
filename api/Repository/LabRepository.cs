@@ -1,7 +1,8 @@
 // using api.Data;
-// using api.Interfaces;
 // using api.Models;
 // using Microsoft.EntityFrameworkCore;
+// using System.Collections.Generic;
+// using System.Threading.Tasks;
 
 // namespace api.Repositories
 // {
@@ -14,33 +15,32 @@
 //             _context = context;
 //         }
 
-//         public async Task<IEnumerable<Lab>> GetAllAsync() => await _context.Labs.ToListAsync();
+//         public async Task<IEnumerable<Lab>> GetAllLabsAsync()
+//         {
+//             return await _context.Labs.ToListAsync();
+//         }
 
-//         public async Task<Lab?> GetByIdAsync(int id) => await _context.Labs.FindAsync(id);
+//         public async Task<Lab> GetLabByIdAsync(int id)
+//         {
+//             return await _context.Labs.FindAsync(id);
+//         }
 
-//         public async Task CreateAsync(Lab lab)
+//         public async Task AddLabAsync(Lab lab)
 //         {
 //             await _context.Labs.AddAsync(lab);
 //             await _context.SaveChangesAsync();
 //         }
 
-//         public async Task<Lab?> UpdateAsync(Lab lab)
+//         public async Task UpdateLabAsync(Lab lab)
 //         {
 //             _context.Labs.Update(lab);
 //             await _context.SaveChangesAsync();
-
-//             return lab;
 //         }
 
-//         public async Task<Lab?> DeleteAsync(int id)
+//         public async Task DeleteLabAsync(Lab lab)
 //         {
-//             var lab = await GetByIdAsync(id);
-//             if (lab == null) return null;
-
 //             _context.Labs.Remove(lab);
 //             await _context.SaveChangesAsync();
-
-//             return lab;
 //         }
 //     }
 // }

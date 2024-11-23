@@ -1,34 +1,17 @@
-// using api.Dtos.Lab;
+// using api.Dtos;
 // using api.Models;
+// using AutoMapper;
 
-// namespace api.Mappers
+// namespace api.Mappings
 // {
-//     public static class LabMapper
+//     public class LabMappingProfile : Profile
 //     {
-//         public static LabDto ToLabDto(this Lab lab) => new LabDto
+//         public LabMappingProfile()
 //         {
-//             Id = lab.Id,
-//             LabName = lab.LabName,
-//             Description = lab.Description,
-//             Location = lab.Location,
-//             IsBorrowed = !lab.IsAvailable
-//         };
-
-//         public static Lab ToLab(this CreateLabRequestDto dto) => new Lab
-//         {
-//             LabName = dto.LabName,
-//             Description = dto.Description,
-//             Location = dto.Location,
-//             IsAvailable = dto.IsAvailable
-//         };
-
-//         public static Lab ToLab(this UpdateLabRequestDto dto, Lab lab)
-//         {
-//             lab.LabName = dto.LabName;
-//             lab.Description = dto.Description;
-//             lab.Location = dto.Location;
-//             lab.IsAvailable = dto.IsAvailable;
-//             return lab;
+//             // Map from Lab to LabDto and reverse
+//             CreateMap<Lab, LabDto>();
+//             CreateMap<CreateLabDto, Lab>();
+//             CreateMap<UpdateLabDto, Lab>();
 //         }
 //     }
 // }

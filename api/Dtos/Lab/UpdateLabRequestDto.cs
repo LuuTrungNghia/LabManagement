@@ -1,15 +1,10 @@
 // using System.ComponentModel.DataAnnotations;
 
-// namespace api.Dtos.Lab
+// namespace api.Dtos
 // {
-//     public class UpdateLabRequestDto
+//     public class UpdateLabDto
 //     {
 //         [Required]
-//         [MaxLength(100)]
-//         public string LabName { get; set; } = string.Empty;
-
-//         public string Description { get; set; } = string.Empty;
-//         public string Location { get; set; } = string.Empty;
-//         public bool IsAvailable { get; set; }
+//         public string LabName { get; set; }
 //     }
 // }

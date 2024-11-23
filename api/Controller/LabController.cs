@@ -1,78 +1,54 @@
-// using api.Dtos.Lab;
-// using api.Interfaces;
-// using api.Models;
+// using api.Dtos;
+// using api.Services;
 // using Microsoft.AspNetCore.Mvc;
+// using System.Threading.Tasks;
 
 // namespace api.Controllers
 // {
-//     [Route("api/lab")]
+//     [Route("api/[controller]")]
 //     [ApiController]
-//     public class LabController : ControllerBase
+//     public class LabsController : ControllerBase
 //     {
-//         private readonly ILabRepository _labRepo;
+//         private readonly ILabService _labService;
 
-//         public LabController(ILabRepository labRepo)
+//         public LabsController(ILabService labService)
 //         {
-//             _labRepo = labRepo;
+//             _labService = labService;
 //         }
 
-//         [HttpGet("get-all")]
-//         public async Task<IActionResult> GetAll()
+//         [HttpGet]
+//         public async Task<IActionResult> GetAllLabs()
 //         {
-//             var labs = await _labRepo.GetAllAsync();
+//             var labs = await _labService.GetAllLabsAsync();
 //             return Ok(labs);
 //         }
 
-//         [HttpGet("get-by-id/{id:int}")]
-//         public async Task<IActionResult> GetById(int id)
+//         [HttpGet("{id}")]
+//         public async Task<IActionResult> GetLabById(int id)
 //         {
-//             var lab = await _labRepo.GetByIdAsync(id);
+//             var lab = await _labService.GetLabByIdAsync(id);
 //             if (lab == null) return NotFound();
-
 //             return Ok(lab);
 //         }
 
-//         [HttpPost("create")]
-//         public async Task<IActionResult> Create([FromBody] CreateLabRequestDto labDto)
+//         [HttpPost]
+//         public async Task<IActionResult> CreateLab(CreateLabDto createLabDto)
 //         {
-//             if (!ModelState.IsValid) return BadRequest(ModelState);
-
-//             var lab = new Lab
-//             {
-//                 LabName = labDto.LabName,
-//                 Description = labDto.Description,
-//                 Location = labDto.Location,
-//                 IsAvailable = labDto.IsAvailable
-//             };
-
-//             await _labRepo.CreateAsync(lab);
-//             return CreatedAtAction(nameof(GetById), new { id = lab.Id }, lab);
+//             await _labService.CreateLabAsync(createLabDto);
+//             return CreatedAtAction(nameof(GetLabById), new { id = createLabDto.LabName }, createLabDto);
 //         }
 
-//         [HttpPut("update/{id:int}")]
-//         public async Task<IActionResult> Update(int id, [FromBody] UpdateLabRequestDto labDto)
+//         [HttpPut("{id}")]
+//         public async Task<IActionResult> UpdateLab(int id, UpdateLabDto updateLabDto)
 //         {
-//             if (!ModelState.IsValid) return BadRequest(ModelState);
-
-//             var existingLab = await _labRepo.GetByIdAsync(id);
-//             if (existingLab == null) return NotFound();
-
-//             existingLab.LabName = labDto.LabName;
-//             existingLab.Description = labDto.Description;
-//             existingLab.Location = labDto.Location;
-//             existingLab.IsAvailable = labDto.IsAvailable;
-
-//             await _labRepo.UpdateAsync(existingLab);
+//             await _labService.UpdateLabAsync(id, updateLabDto);
 //             return NoContent();
 //         }
 
-//         [HttpDelete("delete/{id:int}")]
-//         public async Task<IActionResult> Delete(int id)
+//         [HttpDelete("{id}")]
+//         public async Task<IActionResult> DeleteLab(int id)
 //         {
-//             var existingLab = await _labRepo.GetByIdAsync(id);
-//             if (existingLab == null) return NotFound();
-
-//             await _labRepo.DeleteAsync(id);
+//             await _labService.DeleteLabAsync(id);
 //             return NoContent();
 //         }
 //     }

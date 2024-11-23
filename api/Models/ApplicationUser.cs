@@ -20,8 +20,11 @@ namespace api.Models
         [StringLength(10)]
         public string Gender { get; set; }
 
-        public ICollection<DeviceBorrowingRequest> DeviceBorrowingRequests { get; set; } = new List<DeviceBorrowingRequest>();
+        public bool IsApproved { get; set; } = false;
+        public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
+        public DateTime? LastLogin { get; set; }
 
-        public ICollection<LabBorrowingRequest> LabBorrowingRequests { get; set; } = new List<LabBorrowingRequest>();
+        public ICollection<DeviceBorrowingRequest> DeviceBorrowingRequests { get; set; } = new List<DeviceBorrowingRequest>();
+        // public ICollection<LabBorrowingRequest> LabBorrowingRequests { get; set; } = new List<LabBorrowingRequest>();
     }
 }

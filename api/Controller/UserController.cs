@@ -80,7 +80,7 @@ namespace api.Controllers
         }
 
         [HttpGet("get/{username}")]
-        [Authorize(Roles = "admin, active")]
+        [Authorize(Roles = "admin,student,lecturer")]
         public async Task<IActionResult> GetUser(string username)
         {
             var user = await _userManager.FindByNameAsync(username) as ApplicationUser;
@@ -120,7 +120,7 @@ namespace api.Controllers
         }
 
         [HttpPut("update/{username}")]
-        [Authorize(Roles = "admin,active")]
+        [Authorize(Roles = "admin,student,lecturer")]
         public async Task<IActionResult> UpdateUser(string username, UpdateUserDto updateUserDto)
         {
             var user = await _userManager.FindByNameAsync(username);
@@ -182,7 +182,7 @@ namespace api.Controllers
             if (result.Succeeded) return Ok("User deleted successfully.");
             return BadRequest(result.Errors);
         }
-
+       
         [HttpPut("approve/{username}")]
         [Authorize(Roles = "admin")]
         public async Task<IActionResult> ApproveUser(string username, [FromQuery] string role)
@@ -191,9 +191,20 @@ namespace api.Controllers
             if (user == null) return NotFound("User not found.");
 
             if (role != "student" && role != "lecturer" && role != "admin")
-                return BadRequest("Invalid role. Please specify 'student' or 'lecturer'.");
+                return BadRequest("Invalid role. Please specify 'student', 'lecturer', or 'admin'.");
 
+            // Lấy tất cả các vai trò hiện tại của người dùng
+            var currentRoles = await _userManager.GetRolesAsync(user);
+
+            // Xóa tất cả các vai trò hiện tại, bao gồm cả "user"
+            foreach (var currentRole in currentRoles)
+            {
+                await _userManager.RemoveFromRoleAsync(user, currentRole);
+            }
+
+            // Thêm vai trò mới
             await _userManager.AddToRoleAsync(user, role);
+
             return Ok($"User {username} approved as {role}.");
         }
     }

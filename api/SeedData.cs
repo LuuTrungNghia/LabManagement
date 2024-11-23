@@ -8,7 +8,7 @@ namespace api
         public static async Task Initialize(IServiceProvider services, UserManager<ApplicationUser> userManager)
         {
             var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
-            string[] roleNames = { "admin", "user", "active" };
+            string[] roleNames = { "admin", "user", "student", "lecturer" };
 
             foreach (var roleName in roleNames)
             {

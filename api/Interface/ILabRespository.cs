@@ -1,13 +1,15 @@
 // using api.Models;
+// using System.Collections.Generic;
+// using System.Threading.Tasks;
 
-// namespace api.Interfaces
+// namespace api.Repositories
 // {
 //     public interface ILabRepository
 //     {
-//         Task<IEnumerable<Lab>> GetAllAsync();
-//         Task<Lab?> GetByIdAsync(int id);
-//         Task CreateAsync(Lab lab);
-//         Task<Lab?> UpdateAsync(Lab lab);
-//         Task<Lab?> DeleteAsync(int id);
+//         Task<IEnumerable<Lab>> GetAllLabsAsync();
+//         Task<Lab> GetLabByIdAsync(int id);
+//         Task AddLabAsync(Lab lab);
+//         Task UpdateLabAsync(Lab lab);
+//         Task DeleteLabAsync(Lab lab);
 //     }
 // }

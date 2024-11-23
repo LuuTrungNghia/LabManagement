@@ -1,11 +1,10 @@
 // using api.Models;
 
-// namespace api.Interfaces
+// public interface ILabBorrowingRequestRepository
 // {
-//     public interface ILabBorrowingRepository
-//     {
-//         Task<LabBorrowingRequest?> CreateAsync(LabBorrowing borrowing);
-//         Task<IEnumerable<LabBorrowing>> GetAllByUserAsync(string userName);
-//         Task<LabBorrowing?> ApproveAsync(int id);
-//     }
+//     Task<IEnumerable<LabBorrowingRequest>> GetAllRequestsAsync();
+//     Task<LabBorrowingRequest> GetRequestByIdAsync(int requestId);
+//     Task<LabBorrowingRequest> CreateRequestAsync(LabBorrowingRequest request);
+//     Task<LabBorrowingRequest> ApproveRequestAsync(int requestId);
+//     Task<IEnumerable<LabBorrowingRequest>> GetRequestHistoryAsync(string userId);
 // }
