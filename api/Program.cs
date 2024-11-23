@@ -105,11 +105,10 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IDeviceService, DeviceService>();
 builder.Services.AddScoped<IDeviceBorrowingService, DeviceBorrowingService>();
 builder.Services.AddScoped<IDeviceBorrowingRepository, DeviceBorrowingRepository>();
-//builder.Services.AddScoped<ILabRepository, LabRepository>();
-//builder.Services.AddScoped<ILabService, LabService>();
-
+builder.Services.AddScoped<ILabService, LabService>(); // Đảm bảo thêm dịch vụ LabService
 
 // Register AutoMapper
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddAutoMapper(typeof(DeviceBorrowingMapper));
 builder.Services.AddAutoMapper(typeof(Program));
 
@@ -136,7 +135,9 @@ using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
-    await SeedData.Initialize(services, userManager); // Seed roles and admin user here
+    
+    // Đảm bảo dữ liệu được khởi tạo (vai trò, người dùng, phòng lab)
+    await SeedData.Initialize(services, userManager);
 }
 
 app.Run();

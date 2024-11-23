@@ -12,7 +12,7 @@ using api.Data;
 namespace api.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20241123094011_LabManagementDb")]
+    [Migration("20241123142505_LabManagementDb")]
     partial class LabManagementDb
     {
         /// <inheritdoc />
@@ -91,6 +91,30 @@ namespace api.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("DeviceBorrowingRequests");
+                });
+
+            modelBuilder.Entity("Lab", b =>
+                {
+                    b.Property<int>("LabId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("LabId"));
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsAvailable")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LabName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("LabId");
+
+                    b.ToTable("Labs");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>

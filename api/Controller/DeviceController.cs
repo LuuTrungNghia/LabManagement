@@ -45,16 +45,20 @@ namespace api.Controllers
         [Authorize(Roles = "admin")]
         public async Task<IActionResult> GetById(int id)
         {
+            // Lấy thiết bị theo ID
             var device = await _deviceRepo.GetByIdAsync(id);
             if (device == null)
             {
+                // Nếu không tìm thấy thiết bị, trả về lỗi 404
                 _logger.LogWarning("Device with ID {DeviceId} not found.", id);
                 return NotFound();
             }
 
+            // Lấy thông tin danh mục của thiết bị
             var category = await _categoryRepo.GetByIdAsync(device.CategoryId);
             var categoryName = category?.CategoryName ?? "Unknown";
 
+            // Trả về thông tin chi tiết của thiết bị, bao gồm tên danh mục
             return Ok(device.ToDeviceDetailDto(categoryName));
         }
 

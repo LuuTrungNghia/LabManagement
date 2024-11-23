@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using api.Models;
+using api.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace api
 {
@@ -10,6 +12,7 @@ namespace api
             var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
             string[] roleNames = { "admin", "user", "student", "lecturer" };
 
+            // Tạo các vai trò nếu chưa tồn tại
             foreach (var roleName in roleNames)
             {
                 if (!await roleManager.RoleExistsAsync(roleName))
@@ -18,6 +21,7 @@ namespace api
                 }
             }
 
+            // Tạo người dùng admin nếu chưa tồn tại
             var admin = await userManager.FindByEmailAsync("admin@example.com");
             if (admin == null)
             {
@@ -35,6 +39,23 @@ namespace api
                 if (result.Succeeded)
                 {
                     await userManager.AddToRoleAsync(admin, "admin");
+                }
+            }
+
+            // Khởi tạo phòng lab nếu chưa có
+            using (var context = new ApplicationDbContext(
+                services.GetRequiredService<DbContextOptions<ApplicationDbContext>>()))
+            {
+                context.Database.EnsureCreated();
+                if (!context.Labs.Any())
+                {
+                    context.Labs.Add(new Lab
+                    {
+                        LabName = "Phòng Lab 301",
+                        Description = "Phòng lab mặc định",
+                        IsAvailable = true
+                    });
+                    await context.SaveChangesAsync();
                 }
             }
         }

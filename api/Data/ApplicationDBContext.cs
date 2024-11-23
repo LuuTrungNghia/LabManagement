@@ -12,8 +12,8 @@ namespace api.Data
         public DbSet<DeviceBorrowingRequest> DeviceBorrowingRequests { get; set; }
         public DbSet<DeviceItem> DeviceItems { get; set; }
         public DbSet<Category> Categories { get; set; }
-        // public DbSet<Lab> Labs { get; set; }
-        // public DbSet<LabBorrowingRequest> LabBorrowingRequests { get; set; }
+        public DbSet<Lab> Labs { get; set; }
+        //public DbSet<LabBorrowingRequest> LabBorrowingRequests { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

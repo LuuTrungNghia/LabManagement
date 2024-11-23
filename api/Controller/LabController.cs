@@ -1,55 +1,55 @@
-// using api.Dtos;
-// using api.Services;
-// using Microsoft.AspNetCore.Mvc;
-// using System.Threading.Tasks;
+using api.Data;
+using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 
-// namespace api.Controllers
-// {
-//     [Route("api/[controller]")]
-//     [ApiController]
-//     public class LabsController : ControllerBase
-//     {
-//         private readonly ILabService _labService;
+[ApiController]
+[Route("api/[controller]")]
+public class LabController : ControllerBase
+{
+    private readonly IMapper _mapper;
+    private readonly ApplicationDbContext _context;
 
-//         public LabsController(ILabService labService)
-//         {
-//             _labService = labService;
-//         }
+    public LabController(IMapper mapper, ApplicationDbContext context)
+    {
+        _mapper = mapper;
+        _context = context;
+    }
 
-//         [HttpGet]
-//         public async Task<IActionResult> GetAllLabs()
-//         {
-//             var labs = await _labService.GetAllLabsAsync();
-//             return Ok(labs);
-//         }
+    // API để xem thông tin phòng lab
+    [HttpGet]
+    public async Task<IActionResult> GetLabInfo()
+    {
+        // Giả sử chỉ có một phòng lab duy nhất với Id = 1
+        var lab = await _context.Labs.FindAsync(1);
 
-//         [HttpGet("{id}")]
-//         public async Task<IActionResult> GetLabById(int id)
-//         {
-//             var lab = await _labService.GetLabByIdAsync(id);
-//             if (lab == null) return NotFound();
-//             return Ok(lab);
-//         }
+        if (lab == null)
+        {
+            return NotFound("Lab not found.");
+        }
 
-//         [HttpPost]
-//         public async Task<IActionResult> CreateLab(CreateLabDto createLabDto)
-//         {
-//             await _labService.CreateLabAsync(createLabDto);
-//             return CreatedAtAction(nameof(GetLabById), new { id = createLabDto.LabName }, createLabDto);
-//         }
+        var labDto = _mapper.Map<LabDto>(lab);
+        return Ok(labDto);
+    }
 
-//         [HttpPut("{id}")]
-//         public async Task<IActionResult> UpdateLab(int id, UpdateLabDto updateLabDto)
-//         {
-//             await _labService.UpdateLabAsync(id, updateLabDto);
-//             return NoContent();
-//         }
+    // API để cập nhật thông tin phòng lab
+    [HttpPut]
+    public async Task<IActionResult> UpdateLabInfo([FromBody] UpdateLabDto updateLabDto)
+    {
+        // Giả sử chỉ có một phòng lab duy nhất với Id = 1
+        var lab = await _context.Labs.FindAsync(1);
 
-//         [HttpDelete("{id}")]
-//         public async Task<IActionResult> DeleteLab(int id)
-//         {
-//             await _labService.DeleteLabAsync(id);
-//             return NoContent();
-//         }
-//     }
-// }
+        if (lab == null)
+        {
+            return NotFound("Lab not found.");
+        }
+
+        // Cập nhật thông tin từ DTO vào entity
+        _mapper.Map(updateLabDto, lab);
+
+        // Lưu thay đổi vào cơ sở dữ liệu
+        _context.Labs.Update(lab);
+        await _context.SaveChangesAsync();
+
+        return NoContent(); // Trả về trạng thái 204 - No Content nếu cập nhật thành công
+    }
+}

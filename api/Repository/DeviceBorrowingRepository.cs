@@ -23,13 +23,17 @@ namespace api.Repositories
 
         public async Task<List<DeviceBorrowingRequest>> GetAllAsync()
         {
-            return await _context.DeviceBorrowingRequests.Include(d => d.DeviceBorrowingDetails).ToListAsync();
+            // Include device details for each borrowing request.
+            return await _context.DeviceBorrowingRequests
+                .Include(r => r.DeviceBorrowingDetails) // Ensure related device borrowing details are fetched
+                .ToListAsync();
         }
 
         public async Task<DeviceBorrowingRequest> GetByIdAsync(int id)
         {
-            return await _context.DeviceBorrowingRequests.Include(d => d.DeviceBorrowingDetails)
-                .FirstOrDefaultAsync(r => r.Id == id);
+            return await _context.DeviceBorrowingRequests
+                .Include(r => r.DeviceBorrowingDetails) // Bao gồm chi tiết thiết bị
+                .FirstOrDefaultAsync(r => r.Id == id); // Lấy yêu cầu theo ID
         }
 
         public async Task UpdateAsync(DeviceBorrowingRequest deviceBorrowingRequest)
@@ -41,8 +45,8 @@ namespace api.Repositories
         public async Task<List<DeviceBorrowingRequest>> GetDeviceBorrowingHistory(string username)
         {
             return await _context.DeviceBorrowingRequests
-                .Include(r => r.DeviceBorrowingDetails)
-                .Where(r => r.Username == username)
+                .Include(r => r.DeviceBorrowingDetails) // Bao gồm chi tiết thiết bị
+                .Where(r => r.Username == username) // Lọc theo username
                 .ToListAsync();
         }
 
@@ -68,8 +72,9 @@ namespace api.Repositories
         public async Task<DeviceBorrowingRequest> GetByDeviceItemIdAsync(int deviceItemId)
         {
             return await _context.DeviceBorrowingRequests
-                .FirstOrDefaultAsync(r => r.DeviceBorrowingDetails
-                .Any(d => d.DeviceItemId == deviceItemId));
+                .Include(r => r.DeviceBorrowingDetails)
+                .FirstOrDefaultAsync(r => r.DeviceBorrowingDetails.Any(d => d.DeviceItemId == deviceItemId && 
+                                                                            r.Status != DeviceBorrowingStatus.Completed));
         }
     }
 }

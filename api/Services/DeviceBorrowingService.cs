@@ -35,14 +35,24 @@ namespace api.Services
                 throw new ArgumentException("DeviceBorrowingDetails cannot be null or empty.");
             }
 
+            // Validate each device item
+            foreach (var detail in requestDto.DeviceBorrowingDetails)
+            {
+                var existingRequest = await _deviceBorrowingRepository.GetByDeviceItemIdAsync(detail.DeviceItemId);
+                if (existingRequest != null && existingRequest.Status != DeviceBorrowingStatus.Completed)
+                {
+                    throw new ArgumentException($"DeviceItemId {detail.DeviceItemId} is already borrowed or pending.");
+                }
+            }
+
+            // Create borrowing request
             var deviceBorrowingRequest = new DeviceBorrowingRequest
             {
                 Username = user.UserName,
+                UserId = user.Id,  // Make sure UserId is set correctly here
                 Description = requestDto.Description,
                 FromDate = requestDto.FromDate,
                 ToDate = requestDto.ToDate,
-                UserId = user.Id,
-                Status = DeviceBorrowingStatus.Pending,
                 DeviceBorrowingDetails = requestDto.DeviceBorrowingDetails.Select(detail => new DeviceBorrowingDetail
                 {
                     DeviceId = detail.DeviceId,
@@ -53,6 +63,7 @@ namespace api.Services
 
             await _deviceBorrowingRepository.AddAsync(deviceBorrowingRequest);
 
+            // Map to DTO to return
             return new DeviceBorrowingRequestDto
             {
                 Id = deviceBorrowingRequest.Id,
@@ -60,7 +71,6 @@ namespace api.Services
                 Description = deviceBorrowingRequest.Description,
                 FromDate = deviceBorrowingRequest.FromDate,
                 ToDate = deviceBorrowingRequest.ToDate,
-                Status = deviceBorrowingRequest.Status,
                 DeviceBorrowingDetails = deviceBorrowingRequest.DeviceBorrowingDetails.Select(d => new DeviceBorrowingDetailDto
                 {
                     DeviceId = d.DeviceId,
@@ -72,30 +82,43 @@ namespace api.Services
 
         public async Task<List<DeviceBorrowingRequestDto>> GetDeviceBorrowingRequests()
         {
+            // Fetch all device borrowing requests, including details for each request
             var requests = await _deviceBorrowingRepository.GetAllAsync();
-            return requests.Select(request => new DeviceBorrowingRequestDto
-            {
-                Id = request.Id,
-                Username = request.Username,
-                Description = request.Description,
-                FromDate = request.FromDate,
-                ToDate = request.ToDate,
-                Status = request.Status,
-                DeviceBorrowingDetails = request.DeviceBorrowingDetails.Select(detail => new DeviceBorrowingDetailDto
+
+            // Group requests by username (or userId) and merge devices in the borrowing details
+            var groupedRequests = requests
+                .GroupBy(r => r.Username) // Group by Username or UserId
+                .Select(group => new DeviceBorrowingRequestDto
                 {
-                    DeviceId = detail.DeviceId,
-                    DeviceItemId = detail.DeviceItemId,
-                    Description = detail.Description
-                }).ToList()
-            }).ToList();
+                    // Assign the ID from the first request in the group
+                    Id = group.First().Id, // Use the first request's ID for the grouped entry
+                    Username = group.Key, // Username will be the key of the group
+                    Description = group.First().Description, // Assuming all requests in a group have the same description
+                    FromDate = group.Min(r => r.FromDate), // Assuming the FromDate should be the same for grouped requests
+                    ToDate = group.Max(r => r.ToDate), // Same for ToDate
+                    Status = group.First().Status, // Assuming status is the same for all requests in the group
+                    DeviceBorrowingDetails = group
+                        .SelectMany(r => r.DeviceBorrowingDetails) // Flatten all the device borrowing details for the group
+                        .Select(d => new DeviceBorrowingDetailDto
+                        {
+                            DeviceId = d.DeviceId,
+                            DeviceItemId = d.DeviceItemId,
+                            Description = d.Description
+                        }).ToList()
+                }).ToList();
+
+            return groupedRequests;
         }
 
         public async Task<DeviceBorrowingRequestDto> GetDeviceBorrowingRequestById(int id)
         {
             var request = await _deviceBorrowingRepository.GetByIdAsync(id);
             if (request == null)
+            {
                 return null;
+            }
 
+            // Map the response to DTO and include the device details
             return new DeviceBorrowingRequestDto
             {
                 Id = request.Id,
@@ -103,12 +126,12 @@ namespace api.Services
                 Description = request.Description,
                 FromDate = request.FromDate,
                 ToDate = request.ToDate,
-                Status = request.Status,
-                DeviceBorrowingDetails = request.DeviceBorrowingDetails.Select(detail => new DeviceBorrowingDetailDto
+                Status = request.Status, // The approval status of the request
+                DeviceBorrowingDetails = request.DeviceBorrowingDetails.Select(d => new DeviceBorrowingDetailDto
                 {
-                    DeviceId = detail.DeviceId,
-                    DeviceItemId = detail.DeviceItemId,
-                    Description = detail.Description
+                    DeviceId = d.DeviceId,
+                    DeviceItemId = d.DeviceItemId,
+                    Description = d.Description
                 }).ToList()
             };
         }
@@ -175,28 +198,48 @@ namespace api.Services
             return true;
         }
 
-        public async Task<List<DeviceBorrowingRequestHistoryDto>> GetDeviceBorrowingHistory(string username)
+       public async Task<List<DeviceBorrowingRequestHistoryDto>> GetDeviceBorrowingHistory(string username)
         {
-            var borrowingRequests = await _deviceBorrowingRepository.GetDeviceBorrowingHistory(username);
+            // Fetch the device borrowing requests by username and their details
+            var requests = await _deviceBorrowingRepository.GetDeviceBorrowingHistory(username);
 
-            // Map to history DTOs
-            var history = borrowingRequests.Select(request => new DeviceBorrowingRequestHistoryDto
+            if (requests == null || !requests.Any())
             {
-                Id = request.Id,
-                Username = request.Username,
-                Description = request.Description,
-                FromDate = request.FromDate,
-                ToDate = request.ToDate,
-                Status = request.Status,
-                DeviceBorrowingDetails = request.DeviceBorrowingDetails.Select(detail => new DeviceBorrowingDetailDto
-                {
-                    DeviceId = detail.DeviceId,
-                    DeviceItemId = detail.DeviceItemId,
-                    Description = detail.Description
-                }).ToList()
-            }).ToList();
+                return null; // Or throw an exception if needed
+            }
 
-            return history;
+            // Filter only approved requests
+            var approvedRequests = requests
+                .Where(request => request.Status == DeviceBorrowingStatus.Approved)
+                .ToList();
+
+            if (!approvedRequests.Any())
+            {
+                return null; // No approved requests found
+            }
+
+            // Group the requests by RequestId and merge the devices in each request
+            var groupedRequests = approvedRequests
+                .GroupBy(request => request.Id) // Group by the RequestId
+                .Select(group => new DeviceBorrowingRequestHistoryDto
+                {
+                    Id = group.Key,
+                    Username = group.First().Username,
+                    Description = group.First().Description,
+                    FromDate = group.Min(request => request.FromDate), // Take the earliest start date
+                    ToDate = group.Max(request => request.ToDate), // Take the latest end date
+                    Status = group.First().Status, // All requests in the group should have the same status
+                    DeviceBorrowingDetails = group
+                        .SelectMany(request => request.DeviceBorrowingDetails) // Flatten the list of device borrowing details
+                        .Select(d => new DeviceBorrowingDetailDto
+                        {
+                            DeviceId = d.DeviceId,
+                            DeviceItemId = d.DeviceItemId,
+                            Description = d.Description
+                        }).ToList()
+                }).ToList();
+
+            return groupedRequests;
         }
 
         public async Task<bool> ReturnDevice(DeviceReturnDto deviceReturnDto)

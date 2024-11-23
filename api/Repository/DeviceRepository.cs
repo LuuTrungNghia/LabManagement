@@ -61,17 +61,17 @@ namespace api.Repositories
         // Implementation of the missing method
         public async Task UpdateDeviceStatusAsync(int deviceId, string status)
         {
+            // Lấy thiết bị theo deviceId
             var device = await GetByIdAsync(deviceId);
             if (device == null) return;
 
-            // Find the first DeviceItem and update its status
-            var firstDeviceItem = device.DeviceItems.FirstOrDefault();
-            if (firstDeviceItem != null)
+            // Cập nhật trạng thái cho tất cả các DeviceItems của thiết bị này (nếu có)
+            foreach (var deviceItem in device.DeviceItems)
             {
-                firstDeviceItem.DeviceItemStatus = Enum.Parse<DeviceItemStatus>(status);
+                deviceItem.DeviceItemStatus = Enum.Parse<DeviceItemStatus>(status);
             }
 
-            // Save the updated device to the database
+            // Cập nhật thiết bị và lưu vào cơ sở dữ liệu
             _context.Devices.Update(device);
             await _context.SaveChangesAsync();
         }

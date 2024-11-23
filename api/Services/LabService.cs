@@ -1,57 +1,37 @@
-// using api.Dtos;
-// using api.Models;
-// using api.Repositories;
-// using AutoMapper;
-// using System.Collections.Generic;
-// using System.Threading.Tasks;
+using api.Data;
+using Microsoft.EntityFrameworkCore;
 
-// namespace api.Services
-// {
-//     public class LabService : ILabService
-//     {
-//         private readonly ILabRepository _labRepository;
-//         private readonly IMapper _mapper;
+public class LabService : ILabService
+{
+    private readonly ApplicationDbContext _context;
 
-//         public LabService(ILabRepository labRepository, IMapper mapper)
-//         {
-//             _labRepository = labRepository;
-//             _mapper = mapper;
-//         }
+    public LabService(ApplicationDbContext context)
+    {
+        _context = context;
+    }
 
-//         public async Task<IEnumerable<LabDto>> GetAllLabsAsync()
-//         {
-//             var labs = await _labRepository.GetAllLabsAsync();
-//             return _mapper.Map<IEnumerable<LabDto>>(labs);
-//         }
+    public async Task<Lab> GetLabAsync()
+    {
+        // Lấy phòng lab duy nhất
+        return await _context.Labs.FirstOrDefaultAsync();
+    }
 
-//         public async Task<LabDto> GetLabByIdAsync(int id)
-//         {
-//             var lab = await _labRepository.GetLabByIdAsync(id);
-//             if (lab == null) return null;
-//             return _mapper.Map<LabDto>(lab);
-//         }
+    public async Task<Lab> UpdateLabAsync(Lab lab)
+    {
+        // Lấy phòng lab duy nhất
+        var existingLab = await _context.Labs.FirstOrDefaultAsync();
 
-//         public async Task CreateLabAsync(CreateLabDto createLabDto)
-//         {
-//             var lab = _mapper.Map<Lab>(createLabDto);
-//             await _labRepository.AddLabAsync(lab);
-//         }
+        if (existingLab == null)
+        {
+            return null;
+        }
 
-//         public async Task UpdateLabAsync(int id, UpdateLabDto updateLabDto)
-//         {
-//             var lab = await _labRepository.GetLabByIdAsync(id);
-//             if (lab == null) return;
+        // Cập nhật thông tin phòng lab
+        existingLab.LabName = lab.LabName;
+        existingLab.Description = lab.Description;
+        existingLab.IsAvailable = lab.IsAvailable;
 
-//             _mapper.Map(updateLabDto, lab);
-//             await _labRepository.UpdateLabAsync(lab);
-//         }
-
-//         public async Task DeleteLabAsync(int id)
-//         {
-//             var lab = await _labRepository.GetLabByIdAsync(id);
-//             if (lab == null) return;
-
-//             await _labRepository.DeleteLabAsync(lab);
-//         }
-//     }
-// }
+        await _context.SaveChangesAsync();
+        return existingLab;
+    }
+}

@@ -1,17 +1,11 @@
-// using api.Dtos;
-// using api.Models;
-// using AutoMapper;
+using AutoMapper;
 
-// namespace api.Mappings
-// {
-//     public class LabMappingProfile : Profile
-//     {
-//         public LabMappingProfile()
-//         {
-//             // Map from Lab to LabDto and reverse
-//             CreateMap<Lab, LabDto>();
-//             CreateMap<CreateLabDto, Lab>();
-//             CreateMap<UpdateLabDto, Lab>();
-//         }
-//     }
-// }
+public class MappingProfile : Profile
+{
+    public MappingProfile()
+    {
+        // Map từ Lab sang LabDto và ngược lại
+        CreateMap<Lab, LabDto>().ReverseMap();
+        CreateMap<Lab, UpdateLabDto>().ReverseMap();
+    }
+}

@@ -71,6 +71,21 @@ namespace api.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Labs",
+                columns: table => new
+                {
+                    LabId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    LabName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    IsAvailable = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Labs", x => x.LabId);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "AspNetRoleClaims",
                 columns: table => new
                 {
@@ -365,6 +380,9 @@ namespace api.Migrations
 
             migrationBuilder.DropTable(
                 name: "DeviceBorrowingDetail");
+
+            migrationBuilder.DropTable(
+                name: "Labs");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");

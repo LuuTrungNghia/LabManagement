@@ -1,4 +1,4 @@
-public class LabDto
+public class UpdateLabDto
 {
     public string LabName { get; set; }
     public string Description { get; set; }
