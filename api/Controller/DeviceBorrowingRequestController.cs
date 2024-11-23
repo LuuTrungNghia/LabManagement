@@ -18,21 +18,18 @@ namespace api.Controllers
             _deviceBorrowingService = deviceBorrowingService;
         }
 
-        // Thêm phân quyền cho phép admin và active người dùng xem tất cả yêu cầu mượn thiết bị
         [HttpGet]
-        [Authorize(Roles = "admin, active")]
+        [Authorize(Roles = "admin, student, lecturer")]
         public async Task<IActionResult> GetDeviceBorrowingRequests()
         {
             var requests = await _deviceBorrowingService.GetDeviceBorrowingRequests();
             return Ok(requests);
         }
 
-        // Lấy yêu cầu mượn thiết bị theo ID, chỉ cho phép người dùng truy cập yêu cầu của chính họ hoặc admin
         [HttpGet("{id}")]
-        [Authorize(Roles = "admin, active")]
+        [Authorize(Roles = "admin, student, lecturer")]
         public async Task<IActionResult> GetDeviceBorrowingRequest(int id)
         {
-            // Kiểm tra xem người dùng có phải là người tạo yêu cầu không, hoặc nếu là admin thì cho phép
             var request = await _deviceBorrowingService.GetDeviceBorrowingRequestById(id);
             if (request == null || (User.IsInRole("active") && request.Username != User.Identity.Name))
             {
@@ -42,7 +39,7 @@ namespace api.Controllers
         }
 
         [HttpPost("create")]
-        [Authorize(Roles = "admin, active")]
+        [Authorize(Roles = "admin, student, lecturer")]
         public async Task<IActionResult> CreateDeviceBorrowingRequest([FromBody] CreateDeviceBorrowingRequestDto requestDto)
         {
             var result = await _deviceBorrowingService.CreateDeviceBorrowingRequest(requestDto);
@@ -65,7 +62,6 @@ namespace api.Controllers
             return Ok(result);
         }
 
-        // Phê duyệt yêu cầu mượn thiết bị, chỉ cho phép admin
         [HttpPost("{id}/approve")]
         [Authorize(Roles = "admin")]
         public async Task<IActionResult> ApproveDeviceBorrowingRequest(int id)
@@ -78,9 +74,20 @@ namespace api.Controllers
             return BadRequest("Could not approve borrowing request.");
         }
 
-        // Trả lại thiết bị, cho phép người dùng active và admin
+        [HttpPost("{id}/reject")]
+        [Authorize(Roles = "admin")]
+        public async Task<IActionResult> RejectDeviceBorrowingRequest(int id)
+        {
+            var result = await _deviceBorrowingService.RejectDeviceBorrowingRequest(id);
+            if (result)
+            {
+                return Ok("Borrowing request rejected.");
+            }
+            return BadRequest("Could not reject borrowing request.");
+        }
+
         [HttpPost("return")]
-        [Authorize(Roles = "admin, active")]
+        [Authorize(Roles = "admin, student, lecturer")]
         public async Task<IActionResult> ReturnDevice([FromBody] DeviceReturnDto deviceReturnDto)
         {
             var result = await _deviceBorrowingService.ReturnDevice(deviceReturnDto);
@@ -91,12 +98,23 @@ namespace api.Controllers
             return BadRequest("Could not return device.");
         }
 
-        // Lịch sử mượn thiết bị, chỉ cho phép admin xem lịch sử của người khác
         [HttpGet("history/{username}")]
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = "admin, student, lecturer")]
         public async Task<IActionResult> GetDeviceBorrowingHistory(string username)
         {
+            // Admin can view any user's history, while others can only view their own
+            if (!User.IsInRole("admin") && username != User.Identity.Name)
+            {
+                return Forbid("You are not authorized to view this history.");
+            }
+
             var history = await _deviceBorrowingService.GetDeviceBorrowingHistory(username);
+
+            if (history == null || !history.Any())
+            {
+                return NotFound($"No borrowing history found for user '{username}'.");
+            }
+
             return Ok(history);
         }
     }

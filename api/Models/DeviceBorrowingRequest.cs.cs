@@ -3,17 +3,14 @@ using api.Models;
 public class DeviceBorrowingRequest
 {
     public int Id { get; set; }
-    public string Username { get; set; } // Người đăng ký
-    public string Description { get; set; } // Lý do mượn
-    public DateTime FromDate { get; set; } // Ngày bắt đầu
-    public DateTime ToDate { get; set; } // Ngày kết thúc
-    public DeviceBorrowingStatus Status { get; set; } // Trạng thái đơn đăng ký
+    public string Username { get; set; }
+    public string Description { get; set; }
+    public DateTime FromDate { get; set; }
+    public DateTime ToDate { get; set; }
+    public DeviceBorrowingStatus Status { get; set; }
 
-    // Mối quan hệ với User
-    public string UserId { get; set; } // Khóa ngoại liên kết đến User
-    public ApplicationUser User { get; set; } // Điều hướng đến User
-
-    // Danh sách chi tiết thiết bị mượn
+    public string UserId { get; set; }
+    public ApplicationUser User { get; set; }
     public List<DeviceBorrowingDetail> DeviceBorrowingDetails { get; set; } = new List<DeviceBorrowingDetail>();
 }
 
@@ -21,16 +18,16 @@ public class DeviceBorrowingDetail
     {
         public int Id { get; set; }
 
-        public int DeviceBorrowingRequestId { get; set; } // FK đến DeviceBorrowingRequest
-        public DeviceBorrowingRequest DeviceBorrowingRequest { get; set; } // Navigation property
+        public int DeviceBorrowingRequestId { get; set; }
+        public DeviceBorrowingRequest DeviceBorrowingRequest { get; set; }
 
-        public int DeviceId { get; set; } // FK đến Device
-        public Device Device { get; set; } // Navigation property
+        public int DeviceId { get; set; }
+        public Device Device { get; set; }
 
-        public int DeviceItemId { get; set; } // Khóa ngoại đến DeviceItem
-        public DeviceItem DeviceItem { get; set; } // Navigation property đến DeviceItem
+        public int DeviceItemId { get; set; }
+        public DeviceItem DeviceItem { get; set; }
 
-        public string Description { get; set; } // Mô tả tình trạng thiết bị
+        public string Description { get; set; } 
     }
 
 public enum DeviceBorrowingStatus

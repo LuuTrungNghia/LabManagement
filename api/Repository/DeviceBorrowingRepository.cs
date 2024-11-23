@@ -40,7 +40,8 @@ namespace api.Repositories
 
         public async Task<List<DeviceBorrowingRequest>> GetDeviceBorrowingHistory(string username)
         {
-            return await _context.DeviceBorrowingRequests.Include(d => d.DeviceBorrowingDetails)
+            return await _context.DeviceBorrowingRequests
+                .Include(r => r.DeviceBorrowingDetails)
                 .Where(r => r.Username == username)
                 .ToListAsync();
         }

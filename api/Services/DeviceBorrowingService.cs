@@ -27,29 +27,32 @@ namespace api.Services
             var user = await _userManager.GetUserAsync(_httpContextAccessor.HttpContext.User);
             if (user == null)
             {
-                return null; // User not found
+                throw new Exception("User not authenticated or not found.");
+            }
+
+            if (requestDto.DeviceBorrowingDetails == null || !requestDto.DeviceBorrowingDetails.Any())
+            {
+                throw new ArgumentException("DeviceBorrowingDetails cannot be null or empty.");
             }
 
             var deviceBorrowingRequest = new DeviceBorrowingRequest
             {
-                Username = requestDto.Username,
+                Username = user.UserName,
                 Description = requestDto.Description,
                 FromDate = requestDto.FromDate,
                 ToDate = requestDto.ToDate,
-                UserId = user.Id, // Set the UserId from the authenticated user
-                Status = DeviceBorrowingStatus.Pending, // Default status
+                UserId = user.Id,
+                Status = DeviceBorrowingStatus.Pending,
                 DeviceBorrowingDetails = requestDto.DeviceBorrowingDetails.Select(detail => new DeviceBorrowingDetail
                 {
                     DeviceId = detail.DeviceId,
                     DeviceItemId = detail.DeviceItemId,
                     Description = detail.Description
-                }).ToList() // Map details
+                }).ToList()
             };
 
-            // Add the request to the database
             await _deviceBorrowingRepository.AddAsync(deviceBorrowingRequest);
 
-            // Map to DTO before returning
             return new DeviceBorrowingRequestDto
             {
                 Id = deviceBorrowingRequest.Id,
@@ -58,11 +61,11 @@ namespace api.Services
                 FromDate = deviceBorrowingRequest.FromDate,
                 ToDate = deviceBorrowingRequest.ToDate,
                 Status = deviceBorrowingRequest.Status,
-                DeviceBorrowingDetails = deviceBorrowingRequest.DeviceBorrowingDetails.Select(detail => new DeviceBorrowingDetailDto
+                DeviceBorrowingDetails = deviceBorrowingRequest.DeviceBorrowingDetails.Select(d => new DeviceBorrowingDetailDto
                 {
-                    DeviceId = detail.DeviceId,
-                    DeviceItemId = detail.DeviceItemId,
-                    Description = detail.Description
+                    DeviceId = d.DeviceId,
+                    DeviceItemId = d.DeviceItemId,
+                    Description = d.Description
                 }).ToList()
             };
         }
@@ -159,17 +162,41 @@ namespace api.Services
             return true;
         }
 
+        public async Task<bool> RejectDeviceBorrowingRequest(int id)
+        {
+            var borrowingRequest = await _deviceBorrowingRepository.GetByIdAsync(id);
+            if (borrowingRequest == null || borrowingRequest.Status != DeviceBorrowingStatus.Pending)
+            {
+                return false;  
+            }
+
+            borrowingRequest.Status = DeviceBorrowingStatus.Rejected; 
+            await _deviceBorrowingRepository.UpdateAsync(borrowingRequest);
+            return true;
+        }
+
         public async Task<List<DeviceBorrowingRequestHistoryDto>> GetDeviceBorrowingHistory(string username)
         {
-            var requests = await _deviceBorrowingRepository.GetByUsernameAsync(username);
-            return requests.Select(request => new DeviceBorrowingRequestHistoryDto
+            var borrowingRequests = await _deviceBorrowingRepository.GetDeviceBorrowingHistory(username);
+
+            // Map to history DTOs
+            var history = borrowingRequests.Select(request => new DeviceBorrowingRequestHistoryDto
             {
                 Id = request.Id,
+                Username = request.Username,
                 Description = request.Description,
                 FromDate = request.FromDate,
                 ToDate = request.ToDate,
-                Status = request.Status
+                Status = request.Status,
+                DeviceBorrowingDetails = request.DeviceBorrowingDetails.Select(detail => new DeviceBorrowingDetailDto
+                {
+                    DeviceId = detail.DeviceId,
+                    DeviceItemId = detail.DeviceItemId,
+                    Description = detail.Description
+                }).ToList()
             }).ToList();
+
+            return history;
         }
 
         public async Task<bool> ReturnDevice(DeviceReturnDto deviceReturnDto)

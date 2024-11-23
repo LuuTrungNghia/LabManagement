@@ -5,6 +5,7 @@ public interface IDeviceBorrowingService
     Task<DeviceBorrowingRequestDto> GetDeviceBorrowingRequestById(int id);
     Task<DeviceBorrowingRequestDto> UpdateDeviceBorrowingRequest(int id, UpdateDeviceBorrowingRequestDto requestDto);
     Task<bool> ApproveDeviceBorrowingRequest(int id); 
+    Task<bool> RejectDeviceBorrowingRequest(int id);
     Task<List<DeviceBorrowingRequestHistoryDto>> GetDeviceBorrowingHistory(string username);
     Task<bool> ReturnDevice(DeviceReturnDto deviceReturnDto);
 }
