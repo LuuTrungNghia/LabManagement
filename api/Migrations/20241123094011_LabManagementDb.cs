@@ -239,7 +239,8 @@ namespace api.Migrations
                         name: "FK_DeviceItems_Devices_DeviceId",
                         column: x => x.DeviceId,
                         principalTable: "Devices",
-                        principalColumn: "DeviceId");
+                        principalColumn: "DeviceId",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -265,7 +266,8 @@ namespace api.Migrations
                         name: "FK_DeviceBorrowingDetail_DeviceItems_DeviceItemId",
                         column: x => x.DeviceItemId,
                         principalTable: "DeviceItems",
-                        principalColumn: "DeviceItemId");
+                        principalColumn: "DeviceItemId",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_DeviceBorrowingDetail_Devices_DeviceId",
                         column: x => x.DeviceId,

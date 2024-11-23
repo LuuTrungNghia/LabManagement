@@ -127,9 +127,12 @@ namespace api.Controllers
                 return NotFound();
             }
 
+            // Remove the device item from the device
             device.DeviceItems.Remove(deviceItem);
+            await _deviceRepo.DeleteAsync(deviceItem.DeviceItemId);
             await _deviceRepo.UpdateAsync(deviceId, device.ToUpdateDeviceRequestDto());
 
+            // No need to explicitly delete the DeviceItem if cascading delete is set up
             _logger.LogInformation("Device item with ID {DeviceItemId} deleted from device with ID {DeviceId}", deviceItemId, deviceId);
             return NoContent();
         }
@@ -196,12 +199,21 @@ namespace api.Controllers
         [Authorize(Roles = "admin")]
         public async Task<IActionResult> Delete(int id)
         {
-            var deletedDevice = await _deviceRepo.DeleteAsync(id);
-            if (deletedDevice == null)
+            var device = await _deviceRepo.GetByIdAsync(id);
+            if (device == null)
             {
                 _logger.LogWarning("Device with ID {DeviceId} not found for deletion.", id);
                 return NotFound();
             }
+
+            // Manually delete related DeviceItems if necessary
+            foreach (var deviceItem in device.DeviceItems.ToList())
+            {
+                await _deviceRepo.DeleteAsync(deviceItem.DeviceItemId);
+            }
+
+            // Delete the device
+            await _deviceRepo.DeleteAsync(id);
 
             _logger.LogInformation("Device with ID {DeviceId} deleted.", id);
             return NoContent();

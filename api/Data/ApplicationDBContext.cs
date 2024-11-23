@@ -45,14 +45,14 @@ namespace api.Data
                 .HasMany(d => d.DeviceItems) // One Device can have many DeviceItems
                 .WithOne(di => di.Device) // Each DeviceItem belongs to one Device
                 .HasForeignKey(di => di.DeviceId) // Foreign key in DeviceItem
-                .OnDelete(DeleteBehavior.NoAction); // Use NoAction instead of Cascade
+                .OnDelete(DeleteBehavior.Cascade); // Use NoAction instead of Cascade
 
             // Relationship between DeviceBorrowingDetail and DeviceItem (n-1)
             builder.Entity<DeviceBorrowingDetail>()
                 .HasOne(dbd => dbd.DeviceItem) // Each DeviceBorrowingDetail has one DeviceItem
                 .WithMany() // A DeviceItem can have many DeviceBorrowingDetails
                 .HasForeignKey(dbd => dbd.DeviceItemId) // Foreign key in DeviceBorrowingDetail
-                .OnDelete(DeleteBehavior.NoAction); // Use NoAction instead of Cascade
+                .OnDelete(DeleteBehavior.Cascade); // Use NoAction instead of Cascade
 
         //      // Quan hệ giữa Lab và Device (1-n)
         //     builder.Entity<Lab>()

@@ -12,7 +12,7 @@ using api.Data;
 namespace api.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20241123065455_LabManagementDb")]
+    [Migration("20241123094011_LabManagementDb")]
     partial class LabManagementDb
     {
         /// <inheritdoc />
@@ -408,7 +408,7 @@ namespace api.Migrations
                     b.HasOne("api.Models.DeviceItem", "DeviceItem")
                         .WithMany()
                         .HasForeignKey("DeviceItemId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Device");
@@ -496,7 +496,7 @@ namespace api.Migrations
                     b.HasOne("api.Models.Device", "Device")
                         .WithMany("DeviceItems")
                         .HasForeignKey("DeviceId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Device");

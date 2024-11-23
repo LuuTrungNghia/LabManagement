@@ -405,7 +405,7 @@ namespace api.Migrations
                     b.HasOne("api.Models.DeviceItem", "DeviceItem")
                         .WithMany()
                         .HasForeignKey("DeviceItemId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Device");
@@ -493,7 +493,7 @@ namespace api.Migrations
                     b.HasOne("api.Models.Device", "Device")
                         .WithMany("DeviceItems")
                         .HasForeignKey("DeviceId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Device");
