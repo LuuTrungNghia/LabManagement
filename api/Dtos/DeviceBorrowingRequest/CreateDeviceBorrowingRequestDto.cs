@@ -8,6 +8,7 @@ public class CreateDeviceBorrowingRequestDto
     [Required]
     [MaxLength(500)]
     public string Description { get; set; }
+    public List<GroupStudentDto> GroupStudents { get; set; }
     [Required]
     public List<DeviceBorrowingDetailDto> DeviceBorrowingDetails { get; set; } = new List<DeviceBorrowingDetailDto>();
     public List<string> StudentUsernames { get; set; }

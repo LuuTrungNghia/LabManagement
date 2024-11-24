@@ -141,6 +141,19 @@ namespace api.Controllers
             return NoContent();
         }
 
+        [HttpGet("categories")]
+        [Authorize(Roles = "admin")]
+        public async Task<IActionResult> GetAllCategories()
+        {
+            _logger.LogInformation("Fetching all categories.");
+
+            var categories = await _categoryRepo.GetAllAsync();
+            var categoryDtos = categories.Select(category => category.ToCategoryDto());
+
+            _logger.LogInformation("{Count} categories fetched successfully.", categoryDtos.Count());
+            return Ok(categoryDtos);
+        }
+
         [HttpPost("add-category")]
         [Authorize(Roles = "admin")]
         public async Task<IActionResult> AddCategory([FromBody] CreateCategoryDto categoryDto)
@@ -197,6 +210,42 @@ namespace api.Controllers
 
             _logger.LogInformation("Device with ID {DeviceId} updated.", id);
             return Ok(updatedDevice.ToDeviceDto(categoryName)); // Truyền categoryName vào
+        }
+
+        [HttpPut("{deviceId:int}/update-device-item/{deviceItemId:int}")]
+        [Authorize(Roles = "admin")]
+        public async Task<IActionResult> UpdateDeviceItem(int deviceId, int deviceItemId, [FromBody] UpdateDeviceItemDto deviceItemDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("Invalid model state for updating device item with ID {DeviceItemId}.", deviceItemId);
+                return BadRequest(ModelState);
+            }
+
+            var device = await _deviceRepo.GetByIdAsync(deviceId);
+            if (device == null)
+            {
+                _logger.LogWarning("Device with ID {DeviceId} not found for updating item.", deviceId);
+                return NotFound();
+            }
+
+            var existingDeviceItem = device.DeviceItems.FirstOrDefault(item => item.DeviceItemId == deviceItemId);
+            if (existingDeviceItem == null)
+            {
+                _logger.LogWarning("Device item with ID {DeviceItemId} not found in device with ID {DeviceId}.", deviceItemId, deviceId);
+                return NotFound();
+            }
+
+            // Update the device item properties
+            existingDeviceItem.DeviceItemName = deviceItemDto.DeviceItemName;
+            existingDeviceItem.DeviceItemStatus = deviceItemDto.DeviceItemStatus;
+            existingDeviceItem.Description = deviceItemDto.Description;
+
+            // Save the updated device to the repository
+            await _deviceRepo.UpdateAsync(deviceId, device.ToUpdateDeviceRequestDto());
+
+            _logger.LogInformation("Device item with ID {DeviceItemId} updated in device with ID {DeviceId}.", deviceItemId, deviceId);
+            return Ok(existingDeviceItem.ToDeviceItemDto());
         }
 
         [HttpDelete("delete/{id:int}")]
