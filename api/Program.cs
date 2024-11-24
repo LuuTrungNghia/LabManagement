@@ -106,6 +106,8 @@ builder.Services.AddScoped<IDeviceService, DeviceService>();
 builder.Services.AddScoped<IDeviceBorrowingService, DeviceBorrowingService>();
 builder.Services.AddScoped<IDeviceBorrowingRepository, DeviceBorrowingRepository>();
 builder.Services.AddScoped<ILabService, LabService>(); // Đảm bảo thêm dịch vụ LabService
+builder.Services.AddScoped<ILabBorrowingRequestService, LabBorrowingRequestService>();
+builder.Services.AddScoped<ILabBorrowingRepository, LabBorrowingRepository>();
 
 // Register AutoMapper
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());

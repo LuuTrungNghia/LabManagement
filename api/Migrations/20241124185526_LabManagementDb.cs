@@ -192,29 +192,6 @@ namespace api.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "DeviceBorrowingRequests",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Username = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    FromDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    ToDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Status = table.Column<int>(type: "int", nullable: false),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_DeviceBorrowingRequests", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_DeviceBorrowingRequests_AspNetUsers_UserId",
-                        column: x => x.UserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id");
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Devices",
                 columns: table => new
                 {
@@ -232,6 +209,34 @@ namespace api.Migrations
                         column: x => x.CategoryId,
                         principalTable: "Categories",
                         principalColumn: "CategoryId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "LabBorrowingRequests",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Username = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    LabId = table.Column<int>(type: "int", nullable: false),
+                    ApplicationUserId = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_LabBorrowingRequests", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_LabBorrowingRequests_AspNetUsers_ApplicationUserId",
+                        column: x => x.ApplicationUserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_LabBorrowingRequests_Labs_LabId",
+                        column: x => x.LabId,
+                        principalTable: "Labs",
+                        principalColumn: "LabId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -259,7 +264,43 @@ namespace api.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "DeviceBorrowingDetail",
+                name: "DeviceBorrowingRequests",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Username = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    StudentUsernames = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    LecturerUsername = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    LabBorrowingRequestId = table.Column<int>(type: "int", nullable: true),
+                    DeviceId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DeviceBorrowingRequests", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_DeviceBorrowingRequests_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_DeviceBorrowingRequests_Devices_DeviceId",
+                        column: x => x.DeviceId,
+                        principalTable: "Devices",
+                        principalColumn: "DeviceId");
+                    table.ForeignKey(
+                        name: "FK_DeviceBorrowingRequests_LabBorrowingRequests_LabBorrowingRequestId",
+                        column: x => x.LabBorrowingRequestId,
+                        principalTable: "LabBorrowingRequests",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "DeviceBorrowingDetails",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -267,24 +308,26 @@ namespace api.Migrations
                     DeviceBorrowingRequestId = table.Column<int>(type: "int", nullable: false),
                     DeviceId = table.Column<int>(type: "int", nullable: false),
                     DeviceItemId = table.Column<int>(type: "int", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_DeviceBorrowingDetail", x => x.Id);
+                    table.PrimaryKey("PK_DeviceBorrowingDetails", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_DeviceBorrowingDetail_DeviceBorrowingRequests_DeviceBorrowingRequestId",
+                        name: "FK_DeviceBorrowingDetails_DeviceBorrowingRequests_DeviceBorrowingRequestId",
                         column: x => x.DeviceBorrowingRequestId,
                         principalTable: "DeviceBorrowingRequests",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_DeviceBorrowingDetail_DeviceItems_DeviceItemId",
+                        name: "FK_DeviceBorrowingDetails_DeviceItems_DeviceItemId",
                         column: x => x.DeviceItemId,
                         principalTable: "DeviceItems",
                         principalColumn: "DeviceItemId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_DeviceBorrowingDetail_Devices_DeviceId",
+                        name: "FK_DeviceBorrowingDetails_Devices_DeviceId",
                         column: x => x.DeviceId,
                         principalTable: "Devices",
                         principalColumn: "DeviceId");
@@ -330,19 +373,29 @@ namespace api.Migrations
                 filter: "[NormalizedUserName] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
-                name: "IX_DeviceBorrowingDetail_DeviceBorrowingRequestId",
-                table: "DeviceBorrowingDetail",
+                name: "IX_DeviceBorrowingDetails_DeviceBorrowingRequestId",
+                table: "DeviceBorrowingDetails",
                 column: "DeviceBorrowingRequestId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_DeviceBorrowingDetail_DeviceId",
-                table: "DeviceBorrowingDetail",
+                name: "IX_DeviceBorrowingDetails_DeviceId",
+                table: "DeviceBorrowingDetails",
                 column: "DeviceId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_DeviceBorrowingDetail_DeviceItemId",
-                table: "DeviceBorrowingDetail",
+                name: "IX_DeviceBorrowingDetails_DeviceItemId",
+                table: "DeviceBorrowingDetails",
                 column: "DeviceItemId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DeviceBorrowingRequests_DeviceId",
+                table: "DeviceBorrowingRequests",
+                column: "DeviceId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DeviceBorrowingRequests_LabBorrowingRequestId",
+                table: "DeviceBorrowingRequests",
+                column: "LabBorrowingRequestId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_DeviceBorrowingRequests_UserId",
@@ -358,6 +411,16 @@ namespace api.Migrations
                 name: "IX_Devices_CategoryId",
                 table: "Devices",
                 column: "CategoryId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_LabBorrowingRequests_ApplicationUserId",
+                table: "LabBorrowingRequests",
+                column: "ApplicationUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_LabBorrowingRequests_LabId",
+                table: "LabBorrowingRequests",
+                column: "LabId");
         }
 
         /// <inheritdoc />
@@ -379,10 +442,7 @@ namespace api.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "DeviceBorrowingDetail");
-
-            migrationBuilder.DropTable(
-                name: "Labs");
+                name: "DeviceBorrowingDetails");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
@@ -394,10 +454,16 @@ namespace api.Migrations
                 name: "DeviceItems");
 
             migrationBuilder.DropTable(
-                name: "AspNetUsers");
+                name: "LabBorrowingRequests");
 
             migrationBuilder.DropTable(
                 name: "Devices");
+
+            migrationBuilder.DropTable(
+                name: "AspNetUsers");
+
+            migrationBuilder.DropTable(
+                name: "Labs");
 
             migrationBuilder.DropTable(
                 name: "Categories");

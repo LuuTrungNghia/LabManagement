@@ -1,35 +1,68 @@
-// using api.Models;
-// using api.Repositories;
+using api.Models;
+using api.Dtos;
+using System.Collections.Generic;
+using System.Linq;
 
-// public static class LabBorrowingMapper
-// {
-//     // Maps LabBorrowingRequest to LabBorrowingRequestDto
-//     public static LabBorrowingRequestDto ToDto(this LabBorrowingRequest request)
-//     {
-//         return new LabBorrowingRequestDto
-//         {
-//             Username = request.User.UserName, // Assuming UserName is from ApplicationUser
-//             LabId = request.LabId,
-//             StartDate = request.StartDate,
-//             EndDate = request.EndDate,
-//             DeviceBorrowingRequests = request.DeviceBorrowingRequests.Select(d => d.ToDto()).ToList()
-//         };
-//     }
+namespace api.Mappers
+{
+    public static class LabBorrowingMapper
+    {
+        public static LabBorrowingRequestDto ToDto(LabBorrowingRequest model)
+        {
+            return new LabBorrowingRequestDto
+            {
+                Id = model.Id,
+                Username = model.Username,
+                Description = model.Description,
+                Status = model.Status,
+                DeviceBorrowingRequests = model.DeviceBorrowingRequests.Select(d => new DeviceBorrowingRequestDto
+                {
+                    Id = d.Id,
+                    Username = d.Username,
+                    Description = d.Description,                   
+                    Status = d.Status,
+                    DeviceBorrowingDetails = d.DeviceBorrowingDetails.Select(dd => new DeviceBorrowingDetailDto
+                    {
+                        DeviceId = dd.DeviceId,
+                        DeviceItemId = dd.DeviceItemId,
+                        Description = dd.Description,
+                        StartDate = dd.StartDate,
+                        EndDate = dd.EndDate,
+                    }).ToList()
+                }).ToList()
+            };
+        }
 
-//     // Maps CreateLabBorrowingRequestDto to LabBorrowingRequest
-//     public static LabBorrowingRequest ToEntity(this CreateLabBorrowingRequestDto dto, ApplicationUser user, Lab lab)
-//     {
-//         return new LabBorrowingRequest
-//         {
-//             UserId = user.Id,
-//             LabId = lab.LabId,
-//             StartDate = dto.FromDate,
-//             EndDate = dto.ToDate,
-//             DeviceBorrowingRequests = dto.DeviceIds.Select(d => new DeviceBorrowingRequest
-//             {
-//                 DeviceId = d,
-//                 LabBorrowingRequestId = lab.LabBorrowingRequestId
-//             }).ToList()
-//         };
-//     }
-// }
+        public static LabBorrowingRequest ToModel(CreateLabBorrowingRequestDto dto)
+        {
+            return new LabBorrowingRequest
+            {
+                Username = dto.Username,
+                Description = dto.Description,                
+                Status = LabBorrowingStatus.Pending,
+                DeviceBorrowingRequests = dto.DeviceBorrowingRequests.Select(d => new DeviceBorrowingRequest
+                {
+                    Username = dto.Username,
+                    Description = d.Description,
+                    Status = DeviceBorrowingStatus.Pending,
+                    DeviceBorrowingDetails = new List<DeviceBorrowingDetail>()
+                }).ToList()
+            };
+        }
+
+        public static LabBorrowingRequest ToModel(UpdateLabBorrowingRequestDto dto)
+        {
+            return new LabBorrowingRequest
+            {
+                Description = dto.Description,                
+                DeviceBorrowingRequests = dto.DeviceBorrowingRequests.Select(d => new DeviceBorrowingRequest
+                {
+                    Id = d.Id,
+                    Description = d.Description,
+                    Status = d.Status,
+                    DeviceBorrowingDetails = new List<DeviceBorrowingDetail>()
+                }).ToList()
+            };
+        }
+    }
+}

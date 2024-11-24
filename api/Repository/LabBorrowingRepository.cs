@@ -1,56 +1,63 @@
-// using System.Collections.Generic;
-// using System.Threading.Tasks;
-// using Microsoft.EntityFrameworkCore;
-// using api.Models;
-// using api.Data;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using api.Models;
+using api.Data;
+using Microsoft.EntityFrameworkCore;
 
-// namespace api.Repositories
-// {
-//     public class LabBorrowingRequestRepository : ILabBorrowingRepository
-//     {
-//         private readonly ApplicationDbContext _context;
+namespace api.Repositories
+{
+    public class LabBorrowingRepository : ILabBorrowingRepository
+    {
+        private readonly ApplicationDbContext _context;
 
-//         public LabBorrowingRequestRepository(ApplicationDbContext context)
-//         {
-//             _context = context;
-//         }
+        public LabBorrowingRepository(ApplicationDbContext context)
+        {
+            _context = context;
+        }
 
-//         // Tạo mới yêu cầu mượn phòng lab
-//         public async Task<LabBorrowingRequest> CreateLabBorrowingRequestAsync(LabBorrowingRequest labBorrowingRequest)
-//         {
-//             _context.LabBorrowingRequests.Add(labBorrowingRequest);
-//             await _context.SaveChangesAsync();
-//             return labBorrowingRequest;
-//         }
+        public async Task<LabBorrowingRequest> CreateLabBorrowingRequestAsync(LabBorrowingRequest request)
+        {
+            if (request == null) return null;
 
-//         // Lấy thông tin yêu cầu mượn phòng lab theo ID
-//         public async Task<LabBorrowingRequest> GetLabBorrowingRequestByIdAsync(int id)
-//         {
-//             return await _context.LabBorrowingRequests
-//                 .Include(r => r.DeviceBorrowingRequests)
-//                 .ThenInclude(d => d.DeviceBorrowingDetails)
-//                 .FirstOrDefaultAsync(r => r.LabBorrowingRequestId == id);
-//         }
+            _context.LabBorrowingRequests.Add(request);
+            await _context.SaveChangesAsync();
+            return request;
+        }
 
-//         // Lấy tất cả yêu cầu mượn phòng lab
-//         public async Task<IEnumerable<LabBorrowingRequest>> GetAllLabBorrowingRequestsAsync()
-//         {
-//             return await _context.LabBorrowingRequests
-//                 .Include(r => r.DeviceBorrowingRequests)
-//                 .ThenInclude(d => d.DeviceBorrowingDetails)
-//                 .ToListAsync();
-//         }
+        public async Task<LabBorrowingRequest> GetLabBorrowingRequestByIdAsync(int id)
+        {
+            if (id <= 0) return null;
 
-//         // Phê duyệt yêu cầu mượn phòng lab
-//         public async Task<LabBorrowingRequest> ApproveLabBorrowingRequestAsync(int id)
-//         {
-//             var request = await _context.LabBorrowingRequests.FindAsync(id);
-//             if (request != null)
-//             {
-//                 request.IsApproved = true;
-//                 await _context.SaveChangesAsync();
-//             }
-//             return request;
-//         }
-//     }
-// }
+            return await _context.LabBorrowingRequests.FindAsync(id);
+        }
+
+        public async Task<IEnumerable<LabBorrowingRequest>> GetAllLabBorrowingRequestsAsync()
+        {
+            return await _context.LabBorrowingRequests.ToListAsync();
+        }
+
+        public async Task<LabBorrowingRequest> UpdateLabBorrowingRequestAsync(LabBorrowingRequest request)
+        {
+            var existingRequest = await _context.LabBorrowingRequests.FindAsync(request.Id);
+            if (existingRequest == null)
+            {
+                return null; // or handle as needed
+            }
+            _context.LabBorrowingRequests.Update(request);
+            await _context.SaveChangesAsync();
+            return request;
+        }
+
+        public async Task<bool> DeleteLabBorrowingRequestAsync(int id)
+        {
+            if (id <= 0) return false;
+
+            var request = await _context.LabBorrowingRequests.FindAsync(id);
+            if (request == null) return false;
+
+            _context.LabBorrowingRequests.Remove(request);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+    }
+}

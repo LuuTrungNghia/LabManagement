@@ -1,66 +1,89 @@
-// using System;
-// using System.Collections.Generic;
-// using System.Linq;
-// using System.Threading.Tasks;
-// using api.Data;
-// using api.Models;
-// using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using api.Dtos;
+using api.Repositories;
+using api.Mappers;
 
-// namespace api.Services
-// {
-//     public class LabBorrowingRequestService : ILabBorrowingRequestService
-//     {
-//         private readonly ApplicationDbContext _context;
+namespace api.Services
+{
+    public class LabBorrowingRequestService : ILabBorrowingRequestService
+    {
+        private readonly ILabBorrowingRepository _repository;
 
-//         public LabBorrowingRequestService(ApplicationDbContext context)
-//         {
-//             _context = context;
-//         }
+        public LabBorrowingRequestService(ILabBorrowingRepository repository)
+        {
+            _repository = repository;
+        }
 
-//         // Tạo mới yêu cầu mượn phòng lab
-//         public async Task<LabBorrowingRequest> CreateLabBorrowingRequestAsync(LabBorrowingRequest labBorrowingRequest)
-//         {
-//             var user = await _context.Users.FindAsync(labBorrowingRequest.UserId);
-//             var lab = await _context.Labs.FindAsync(labBorrowingRequest.LabId);
+        public async Task<LabBorrowingRequestDto> CreateLabBorrowingRequestAsync(CreateLabBorrowingRequestDto dto)
+        {
+            if (dto == null) return null;
 
-//             if (user == null || lab == null)
-//             {
-//                 return null; // Không tìm thấy người dùng hoặc phòng lab
-//             }
+            var request = LabBorrowingMapper.ToModel(dto);
+            var createdRequest = await _repository.CreateLabBorrowingRequestAsync(request);
+            return LabBorrowingMapper.ToDto(createdRequest);
+        }
 
-//             _context.LabBorrowingRequests.Add(labBorrowingRequest);
-//             await _context.SaveChangesAsync();
+        public async Task<LabBorrowingRequestDto> GetLabBorrowingRequestByIdAsync(int id)
+        {
+            if (id <= 0) return null;
 
-//             return labBorrowingRequest;
-//         }
+            var request = await _repository.GetLabBorrowingRequestByIdAsync(id);
+            return request == null ? null : LabBorrowingMapper.ToDto(request);
+        }
 
-//         // Phê duyệt yêu cầu mượn phòng lab
-//         public async Task<LabBorrowingRequest> ApproveLabBorrowingRequestAsync(int requestId)
-//         {
-//             var request = await _context.LabBorrowingRequests.FindAsync(requestId);
-//             if (request == null) return null;
+        public async Task<IEnumerable<LabBorrowingRequestDto>> GetAllLabBorrowingRequestsAsync()
+        {
+            var requests = await _repository.GetAllLabBorrowingRequestsAsync();
+            var dtos = new List<LabBorrowingRequestDto>();
+            foreach (var request in requests)
+            {
+                dtos.Add(LabBorrowingMapper.ToDto(request));
+            }
+            return dtos;
+        }
 
-//             request.IsApproved = true;
-//             await _context.SaveChangesAsync();
+        public async Task<LabBorrowingRequestDto> UpdateLabBorrowingRequestAsync(int id, UpdateLabBorrowingRequestDto dto)
+        {
+            if (id <= 0 || dto == null) return null;
 
-//             return request;
-//         }
+            var request = await _repository.GetLabBorrowingRequestByIdAsync(id);
+            if (request == null) return null;
 
-//         // Lấy lịch sử mượn phòng của người dùng
-//         public async Task<IEnumerable<LabBorrowingRequest>> GetLabBorrowingHistoryAsync(int userId)
-//         {
-//             return await _context.LabBorrowingRequests
-//                 .Where(r => r.UserId == userId)
-//                 .ToListAsync();
-//         }
+            var updatedRequest = LabBorrowingMapper.ToModel(dto);
+            updatedRequest.Id = id;
+            var result = await _repository.UpdateLabBorrowingRequestAsync(updatedRequest);
+            return LabBorrowingMapper.ToDto(result);
+        }
 
-//         // Lấy thông tin một yêu cầu mượn phòng cụ thể
-//         public async Task<LabBorrowingRequest> GetLabBorrowingRequestAsync(int requestId)
-//         {
-//             return await _context.LabBorrowingRequests
-//                 .Include(r => r.DeviceBorrowingRequests)
-//                 .ThenInclude(d => d.DeviceBorrowingDetails)
-//                 .FirstOrDefaultAsync(r => r.LabBorrowingRequestId == requestId);
-//         }
-//     }
-// }
+        public async Task<bool> DeleteLabBorrowingRequestAsync(int id)
+        {
+            if (id <= 0) return false;
+
+            return await _repository.DeleteLabBorrowingRequestAsync(id);
+        }
+        // Approve the lab borrowing request
+    public async Task<LabBorrowingRequestDto> ApproveLabBorrowingRequestAsync(int id)
+    {
+        var request = await _repository.GetLabBorrowingRequestByIdAsync(id);
+        if (request == null || request.Status != LabBorrowingStatus.Pending)
+            return null; // Only approve pending requests
+
+        request.Status = LabBorrowingStatus.Approved;
+        var updatedRequest = await _repository.UpdateLabBorrowingRequestAsync(request);
+        return LabBorrowingMapper.ToDto(updatedRequest);
+    }
+
+        // Reject the lab borrowing request
+        public async Task<LabBorrowingRequestDto> RejectLabBorrowingRequestAsync(int id)
+        {
+            var request = await _repository.GetLabBorrowingRequestByIdAsync(id);
+            if (request == null || request.Status != LabBorrowingStatus.Pending)
+                return null; // Only reject pending requests
+
+            request.Status = LabBorrowingStatus.Rejected;
+            var updatedRequest = await _repository.UpdateLabBorrowingRequestAsync(request);
+            return LabBorrowingMapper.ToDto(updatedRequest);
+        }
+    }
+}

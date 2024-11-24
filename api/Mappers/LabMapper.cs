@@ -6,6 +6,5 @@ public class MappingProfile : Profile
     {
         // Map từ Lab sang LabDto và ngược lại
         CreateMap<Lab, LabDto>().ReverseMap();
-        CreateMap<Lab, UpdateLabDto>().ReverseMap();
     }
 }

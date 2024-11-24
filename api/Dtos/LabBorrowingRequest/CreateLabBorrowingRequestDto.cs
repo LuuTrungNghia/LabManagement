@@ -1,18 +1,7 @@
-// using System.ComponentModel.DataAnnotations;
-
-// public class CreateLabBorrowingRequestDto
-// {
-//     [Required]
-//     public int LabId { get; set; }
-    
-//     [Required]
-//     public string Username { get; set; }
-    
-//     [Required]
-//     public DateTime FromDate { get; set; }
-    
-//     [Required]
-//     public DateTime ToDate { get; set; }
-    
-//     public List<int> DeviceIds { get; set; } = new List<int>();
-// }
+public class CreateLabBorrowingRequestDto
+{
+    public string Username { get; set; }
+    public string Description { get; set; }
+    public List<GroupStudentDto> GroupStudents { get; set; }
+    public List<CreateDeviceBorrowingRequestDto> DeviceBorrowingRequests { get; set; }
+}

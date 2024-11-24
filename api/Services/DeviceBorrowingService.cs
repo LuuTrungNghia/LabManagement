@@ -30,12 +30,13 @@ namespace api.Services
                 throw new Exception("User not authenticated or not found.");
             }
 
+            // Validate the device borrowing details
             if (requestDto.DeviceBorrowingDetails == null || !requestDto.DeviceBorrowingDetails.Any())
             {
                 throw new ArgumentException("DeviceBorrowingDetails cannot be null or empty.");
             }
 
-            // Validate each device item
+            // Check if devices are available
             foreach (var detail in requestDto.DeviceBorrowingDetails)
             {
                 var existingRequest = await _deviceBorrowingRepository.GetByDeviceItemIdAsync(detail.DeviceItemId);
@@ -45,39 +46,71 @@ namespace api.Services
                 }
             }
 
-            // Create borrowing request
+            // Validate student usernames
+            if (requestDto.StudentUsernames != null && requestDto.StudentUsernames.Any())
+            {
+                foreach (var studentUsername in requestDto.StudentUsernames)
+                {
+                    var student = await _userManager.FindByNameAsync(studentUsername);
+                    if (student == null)
+                    {
+                        throw new ArgumentException($"Student with username '{studentUsername}' does not exist.");
+                    }
+                }
+            }
+
+            // Validate lecturer username
+            if (!string.IsNullOrEmpty(requestDto.LecturerUsername))
+            {
+                var lecturer = await _userManager.FindByNameAsync(requestDto.LecturerUsername);
+                if (lecturer == null)
+                {
+                    throw new ArgumentException($"Lecturer with username '{requestDto.LecturerUsername}' does not exist.");
+                }
+            }
+
+            // Create device borrowing request
             var deviceBorrowingRequest = new DeviceBorrowingRequest
             {
                 Username = user.UserName,
-                UserId = user.Id,  // Make sure UserId is set correctly here
-                Description = requestDto.Description,
-                FromDate = requestDto.FromDate,
-                ToDate = requestDto.ToDate,
+                UserId = user.Id,
+                Description = requestDto.Description,                
                 DeviceBorrowingDetails = requestDto.DeviceBorrowingDetails.Select(detail => new DeviceBorrowingDetail
                 {
                     DeviceId = detail.DeviceId,
                     DeviceItemId = detail.DeviceItemId,
-                    Description = detail.Description
-                }).ToList()
+                    Description = detail.Description,
+                    StartDate = detail.StartDate,
+                    EndDate = detail.EndDate,
+                }).ToList(),
+                StudentUsernames = requestDto.StudentUsernames,
+                LecturerUsername = requestDto.LecturerUsername
             };
 
+            // Save the request to the database
             await _deviceBorrowingRepository.AddAsync(deviceBorrowingRequest);
 
-            // Map to DTO to return
             return new DeviceBorrowingRequestDto
             {
                 Id = deviceBorrowingRequest.Id,
                 Username = deviceBorrowingRequest.Username,
                 Description = deviceBorrowingRequest.Description,
-                FromDate = deviceBorrowingRequest.FromDate,
-                ToDate = deviceBorrowingRequest.ToDate,
+                
                 DeviceBorrowingDetails = deviceBorrowingRequest.DeviceBorrowingDetails.Select(d => new DeviceBorrowingDetailDto
                 {
                     DeviceId = d.DeviceId,
                     DeviceItemId = d.DeviceItemId,
-                    Description = d.Description
+                    Description = d.Description,
+                    StartDate = d.StartDate,
+                    EndDate = d.EndDate,
                 }).ToList()
             };
+        }
+
+        public async Task<DeviceBorrowingRequest> CheckIfDeviceIsAvailable(int deviceItemId)
+        {
+            var existingRequest = await _deviceBorrowingRepository.GetByDeviceItemIdAsync(deviceItemId);
+            return existingRequest;
         }
 
         public async Task<List<DeviceBorrowingRequestDto>> GetDeviceBorrowingRequests()
@@ -93,9 +126,7 @@ namespace api.Services
                     // Assign the ID from the first request in the group
                     Id = group.First().Id, // Use the first request's ID for the grouped entry
                     Username = group.Key, // Username will be the key of the group
-                    Description = group.First().Description, // Assuming all requests in a group have the same description
-                    FromDate = group.Min(r => r.FromDate), // Assuming the FromDate should be the same for grouped requests
-                    ToDate = group.Max(r => r.ToDate), // Same for ToDate
+                    Description = group.First().Description, // Assuming all requests in a group have the same description                    
                     Status = group.First().Status, // Assuming status is the same for all requests in the group
                     DeviceBorrowingDetails = group
                         .SelectMany(r => r.DeviceBorrowingDetails) // Flatten all the device borrowing details for the group
@@ -103,7 +134,9 @@ namespace api.Services
                         {
                             DeviceId = d.DeviceId,
                             DeviceItemId = d.DeviceItemId,
-                            Description = d.Description
+                            Description = d.Description,
+                            StartDate = d.StartDate, // Assuming the StartDate should be the same for grouped requests
+                            EndDate = d.EndDate, // Same for EndDate
                         }).ToList()
                 }).ToList();
 
@@ -123,15 +156,15 @@ namespace api.Services
             {
                 Id = request.Id,
                 Username = request.Username,
-                Description = request.Description,
-                FromDate = request.FromDate,
-                ToDate = request.ToDate,
+                Description = request.Description,                
                 Status = request.Status, // The approval status of the request
                 DeviceBorrowingDetails = request.DeviceBorrowingDetails.Select(d => new DeviceBorrowingDetailDto
                 {
                     DeviceId = d.DeviceId,
                     DeviceItemId = d.DeviceItemId,
-                    Description = d.Description
+                    Description = d.Description,
+                    StartDate = d.StartDate,
+                    EndDate = d.EndDate,
                 }).ToList()
             };
         }
@@ -142,10 +175,7 @@ namespace api.Services
             if (request == null)
                 return null;
 
-            request.Description = requestDto.Description;
-            request.FromDate = requestDto.FromDate;
-            request.ToDate = requestDto.ToDate;
-
+            request.Description = requestDto.Description;            
             // Clear existing details and add new ones
             request.DeviceBorrowingDetails.Clear();
             foreach (var detail in requestDto.DeviceBorrowingDetails)
@@ -154,7 +184,9 @@ namespace api.Services
                 {
                     DeviceId = detail.DeviceId,
                     DeviceItemId = detail.DeviceItemId,
-                    Description = detail.Description
+                    Description = detail.Description,
+                    StartDate = detail.StartDate,
+                    EndDate = detail.EndDate,
                 });
             }
 
@@ -165,8 +197,6 @@ namespace api.Services
                 Id = request.Id,
                 Username = request.Username,
                 Description = request.Description,
-                FromDate = request.FromDate,
-                ToDate = request.ToDate,
                 Status = request.Status,
                 DeviceBorrowingDetails = requestDto.DeviceBorrowingDetails
             };
@@ -198,44 +228,36 @@ namespace api.Services
             return true;
         }
 
-       public async Task<List<DeviceBorrowingRequestHistoryDto>> GetDeviceBorrowingHistory(string username)
+        public async Task<List<DeviceBorrowingRequestHistoryDto>> GetDeviceBorrowingHistory(string username)
         {
-            // Fetch the device borrowing requests by username and their details
             var requests = await _deviceBorrowingRepository.GetDeviceBorrowingHistory(username);
 
             if (requests == null || !requests.Any())
             {
-                return null; // Or throw an exception if needed
+                return null;
             }
 
-            // Filter only approved requests
             var approvedRequests = requests
                 .Where(request => request.Status == DeviceBorrowingStatus.Approved)
                 .ToList();
 
-            if (!approvedRequests.Any())
-            {
-                return null; // No approved requests found
-            }
-
-            // Group the requests by RequestId and merge the devices in each request
             var groupedRequests = approvedRequests
-                .GroupBy(request => request.Id) // Group by the RequestId
+                .GroupBy(request => request.Id)
                 .Select(group => new DeviceBorrowingRequestHistoryDto
                 {
                     Id = group.Key,
                     Username = group.First().Username,
-                    Description = group.First().Description,
-                    FromDate = group.Min(request => request.FromDate), // Take the earliest start date
-                    ToDate = group.Max(request => request.ToDate), // Take the latest end date
-                    Status = group.First().Status, // All requests in the group should have the same status
+                    Description = group.First().Description,                    
+                    Status = group.First().Status,
                     DeviceBorrowingDetails = group
-                        .SelectMany(request => request.DeviceBorrowingDetails) // Flatten the list of device borrowing details
+                        .SelectMany(request => request.DeviceBorrowingDetails)
                         .Select(d => new DeviceBorrowingDetailDto
                         {
                             DeviceId = d.DeviceId,
                             DeviceItemId = d.DeviceItemId,
-                            Description = d.Description
+                            Description = d.Description,
+                            StartDate = d.StartDate,
+                            EndDate = d.EndDate,
                         }).ToList()
                 }).ToList();
 

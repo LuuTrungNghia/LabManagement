@@ -1,8 +1,10 @@
-// public class LabBorrowingRequestDto
-// {
-//     public string Username { get; set; }
-//     public int LabId { get; set; }
-//     public DateTime StartDate { get; set; }
-//     public DateTime EndDate { get; set; }
-//     public ICollection<DeviceBorrowingRequestDto> DeviceBorrowingRequests { get; set; }
-// }
+using api.Models;
+
+public class LabBorrowingRequestDto
+{
+    public int Id { get; set; }
+    public string Username { get; set; }
+    public string Description { get; set; }    
+    public LabBorrowingStatus Status { get; set; }
+    public List<DeviceBorrowingRequestDto> DeviceBorrowingRequests { get; set; }
+}

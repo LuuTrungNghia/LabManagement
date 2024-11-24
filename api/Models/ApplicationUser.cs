@@ -24,7 +24,7 @@ namespace api.Models
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
         public DateTime? LastLogin { get; set; }
 
-        public ICollection<DeviceBorrowingRequest> DeviceBorrowingRequests { get; set; } = new List<DeviceBorrowingRequest>();
-        // public ICollection<LabBorrowingRequest> LabBorrowingRequests { get; set; } = new List<LabBorrowingRequest>();
+        public IEnumerable<DeviceBorrowingRequest> DeviceBorrowingRequests { get; set; } = new List<DeviceBorrowingRequest>();  // Change to IEnumerable
+        public ICollection<LabBorrowingRequest> LabBorrowingRequests { get; set; } = new List<LabBorrowingRequest>();
     }
 }

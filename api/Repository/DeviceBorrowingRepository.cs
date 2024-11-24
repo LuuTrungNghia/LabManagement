@@ -56,7 +56,7 @@ namespace api.Repositories
             if (deviceItem == null)
                 return false;
 
-            deviceItem.DeviceItemStatus = DeviceItemStatus.Available;
+            deviceItem.DeviceItemStatus = DeviceItemStatus.Borrowed;
             await _context.SaveChangesAsync();
             return true;
         }
