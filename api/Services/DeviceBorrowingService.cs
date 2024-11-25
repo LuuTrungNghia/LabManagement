@@ -47,6 +47,7 @@ namespace api.Services
             var deviceBorrowingRequest = new DeviceBorrowingRequest
             {
                 UserId = user.Id,
+                Username = user.UserName,
                 Description = requestDto.Description,
                 GroupStudents = requestDto.GroupStudents?.Select(g => new GroupStudent
                 {
@@ -108,6 +109,7 @@ namespace api.Services
                     Description = group.First().Description, // Assuming all requests in a group have the same description                    
                     Status = group.First().Status, // Assuming status is the same for all requests in the group                                    
                 }).ToList();
+
             return groupedRequests;
         }
 
