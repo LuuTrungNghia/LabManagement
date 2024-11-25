@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using api.Dtos;
 using api.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace api.Controllers
@@ -19,6 +20,7 @@ namespace api.Controllers
 
         // Get all Lab Borrowing Requests
         [HttpGet]
+        [Authorize(Roles = "admin")]
         public async Task<ActionResult<IEnumerable<LabBorrowingRequestDto>>> GetAllLabBorrowingRequests()
         {
             var requests = await _service.GetAllLabBorrowingRequestsAsync();
@@ -27,6 +29,7 @@ namespace api.Controllers
 
         // Get Lab Borrowing Request by ID
         [HttpGet("{id}")]
+        [Authorize(Roles = "admin")]
         public async Task<ActionResult<LabBorrowingRequestDto>> GetLabBorrowingRequestById(int id)
         {
             var request = await _service.GetLabBorrowingRequestByIdAsync(id);
@@ -36,6 +39,7 @@ namespace api.Controllers
 
         // Create Lab Borrowing Request
         [HttpPost]
+        [Authorize(Roles = "admin,lecturer,student")]
         public async Task<ActionResult<LabBorrowingRequestDto>> CreateLabBorrowingRequest(CreateLabBorrowingRequestDto dto)
         {
             var createdRequest = await _service.CreateLabBorrowingRequestAsync(dto);
@@ -45,6 +49,7 @@ namespace api.Controllers
 
         // Update Lab Borrowing Request
         [HttpPut("{id}")]
+        [Authorize(Roles = "admin")]
         public async Task<ActionResult<LabBorrowingRequestDto>> UpdateLabBorrowingRequest(int id, UpdateLabBorrowingRequestDto dto)
         {
             var updatedRequest = await _service.UpdateLabBorrowingRequestAsync(id, dto);
@@ -54,6 +59,7 @@ namespace api.Controllers
 
         // Delete Lab Borrowing Request
         [HttpDelete("{id}")]
+        [Authorize(Roles = "admin")]
         public async Task<ActionResult> DeleteLabBorrowingRequest(int id)
         {
             var success = await _service.DeleteLabBorrowingRequestAsync(id);
@@ -63,6 +69,7 @@ namespace api.Controllers
         
         // Approve Lab Borrowing Request
         [HttpPost("approve/{id}")]
+        [Authorize(Roles = "admin")]
         public async Task<ActionResult<LabBorrowingRequestDto>> ApproveLabBorrowingRequest(int id)
         {
             var updatedRequest = await _service.ApproveLabBorrowingRequestAsync(id);
@@ -72,6 +79,7 @@ namespace api.Controllers
 
         // Reject Lab Borrowing Request
         [HttpPost("reject/{id}")]
+        [Authorize(Roles = "admin")]
         public async Task<ActionResult<LabBorrowingRequestDto>> RejectLabBorrowingRequest(int id)
         {
             var updatedRequest = await _service.RejectLabBorrowingRequestAsync(id);

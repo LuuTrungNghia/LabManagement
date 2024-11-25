@@ -23,7 +23,7 @@ namespace api.Controllers
 
         // Get all device borrowing requests
         [HttpGet]
-        [Authorize(Roles = "admin, student, lecturer")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> GetDeviceBorrowingRequests()
         {
             var requests = await _deviceBorrowingService.GetDeviceBorrowingRequests();
@@ -48,7 +48,7 @@ namespace api.Controllers
 
         // Get a specific device borrowing request by ID
         [HttpGet("{id}")]
-        [Authorize(Roles = "admin, student, lecturer")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> GetDeviceBorrowingRequest(int id)
         {
             var request = await _deviceBorrowingService.GetDeviceBorrowingRequestById(id);
@@ -160,7 +160,7 @@ namespace api.Controllers
 
         // Return a borrowed device
         [HttpPost("return")]
-        [Authorize(Roles = "admin, student, lecturer")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> ReturnDevice([FromBody] DeviceReturnDto deviceReturnDto)
         {
             var result = await _deviceBorrowingService.ReturnDevice(deviceReturnDto);
@@ -173,7 +173,7 @@ namespace api.Controllers
 
         // Get device borrowing history for a specific user
         [HttpGet("history/{username}")]
-        [Authorize(Roles = "admin, student, lecturer")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> GetDeviceBorrowingHistory(string username)
         {
             if (!User.IsInRole("admin") && username != User.Identity.Name)

@@ -25,17 +25,17 @@ namespace api.Repositories
         public async Task<LabBorrowingRequest> GetLabBorrowingRequestByIdAsync(int id)
         {
             return await _context.LabBorrowingRequests
-                                .Include(r => r.GroupStudents)
-                                .Include(r => r.DeviceBorrowingDetails)
-                                .FirstOrDefaultAsync(r => r.Id == id);
+                .Include(r => r.GroupStudents)
+                .Include(r => r.DeviceBorrowingDetails)
+                .FirstOrDefaultAsync(r => r.Id == id);
         }
 
         public async Task<IEnumerable<LabBorrowingRequest>> GetAllLabBorrowingRequestsAsync()
         {
             return await _context.LabBorrowingRequests
-                                .Include(r => r.GroupStudents)
-                                .Include(r => r.DeviceBorrowingDetails)
-                                .ToListAsync();
+                .Include(r => r.GroupStudents)
+                .Include(r => r.DeviceBorrowingDetails)
+                .ToListAsync();
         }
 
         public async Task<LabBorrowingRequest> UpdateLabBorrowingRequestAsync(LabBorrowingRequest request)
