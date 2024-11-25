@@ -57,6 +57,52 @@ namespace api.Controllers
             return BadRequest(result.Errors);
         }
 
+        [HttpPost("admin-register")]
+        [Authorize(Roles = "admin")]  // Chỉ admin mới có quyền truy cập
+        public async Task<IActionResult> AdminRegister(AdminRegisterUserDto registerDto)
+        {
+            // Kiểm tra vai trò hợp lệ
+            if (registerDto.Role != "student" && registerDto.Role != "lecturer" && registerDto.Role != "admin")
+            {
+                return BadRequest("Invalid role. Please specify 'student', 'lecturer', or 'admin'.");
+            }
+
+            var user = new ApplicationUser
+            {
+                UserName = registerDto.Username,
+                Email = registerDto.Email,
+                FullName = registerDto.FullName,
+                Avatar = registerDto.Avatar,
+                DateOfBirth = registerDto.DateOfBirth,
+                Gender = registerDto.Gender
+            };
+
+            // Tạo tài khoản người dùng mới
+            var result = await _userManager.CreateAsync(user, registerDto.Password);
+            if (result.Succeeded)
+            {
+                // Gán vai trò cho người dùng theo lựa chọn của admin
+                await _userManager.AddToRoleAsync(user, registerDto.Role);
+
+                // Lấy danh sách vai trò của người dùng và tạo token
+                var roles = await _userManager.GetRolesAsync(user);
+                var token = _tokenService.CreateToken(user, roles);
+
+                return Ok(new
+                {
+                    Username = user.UserName,
+                    Email = user.Email,
+                    FullName = user.FullName,
+                    Avatar = user.Avatar,
+                    DateOfBirth = user.DateOfBirth,
+                    Gender = user.Gender,
+                    Token = token
+                });
+            }
+
+            return BadRequest(result.Errors);
+        }
+
         [HttpPost("login")]        
         public async Task<IActionResult> Login(LoginUserDto loginDto)
         {
@@ -150,19 +196,6 @@ namespace api.Controllers
             if (!string.IsNullOrEmpty(updateUserDto.Gender))
             {
                 user.Gender = updateUserDto.Gender;
-            }
-
-            // Xử lý thay đổi mật khẩu nếu có
-            if (!string.IsNullOrEmpty(updateUserDto.NewPassword))
-            {
-                if (updateUserDto.NewPassword != updateUserDto.ConfirmNewPassword)
-                    return BadRequest("New passwords do not match.");
-
-                var passwordCheck = await _userManager.CheckPasswordAsync(user, updateUserDto.CurrentPassword);
-                if (!passwordCheck) return BadRequest("Current password is incorrect.");
-
-                var passwordChangeResult = await _userManager.ChangePasswordAsync(user, updateUserDto.CurrentPassword, updateUserDto.NewPassword);
-                if (!passwordChangeResult.Succeeded) return BadRequest(passwordChangeResult.Errors);
             }
 
             var result = await _userManager.UpdateAsync(user);
