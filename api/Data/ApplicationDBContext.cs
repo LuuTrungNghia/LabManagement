@@ -56,11 +56,10 @@ namespace api.Data
                 .HasForeignKey(dbd => dbd.DeviceItemId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Relationship between DeviceBorrowingRequest and LabBorrowingRequest (1-n)
-            builder.Entity<DeviceBorrowingRequest>()
-                .HasOne(dbr => dbr.LabBorrowingRequest)
-                .WithMany(lbr => lbr.DeviceBorrowingRequests)
-                .HasForeignKey(dbr => dbr.LabBorrowingRequestId)
+           // Relationship between LabBorrowingRequest and DeviceBorrowingDetail (1-n)
+            builder.Entity<LabBorrowingRequest>()
+                .HasMany(lbr => lbr.DeviceBorrowingDetails)
+                .WithOne()
                 .OnDelete(DeleteBehavior.Cascade);
 
             builder.Entity<DeviceBorrowingRequest>()

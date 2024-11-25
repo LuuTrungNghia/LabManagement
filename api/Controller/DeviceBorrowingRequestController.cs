@@ -39,26 +39,7 @@ namespace api.Controllers
                     Id = group.First().Id,
                     Username = group.Key,
                     Description = group.First().Description,                    
-                    Status = group.First().Status,
-                    GroupStudents = group
-                        .SelectMany(r => r.GroupStudents)
-                        .Select(g => new GroupStudentDto
-                        {
-                            StudentName = g.StudentName,
-                            LectureName = g.LectureName
-                        }).ToList(),
-                    DeviceBorrowingDetails = group
-                        .SelectMany(r => r.DeviceBorrowingDetails)
-                        .GroupBy(d => new { d.DeviceId, d.DeviceItemId })
-                        .Select(g => new
-                        {
-                            DeviceId = g.Key.DeviceId,
-                            DeviceItemId = g.Key.DeviceItemId,
-                            Description = string.Join(", ", g.Select(d => d.Description)),
-                            StartDate = g.Min(d => d.StartDate),
-                            EndDate = g.Max(d => d.EndDate), 
-                        })
-                        .ToList()
+                    Status = group.First().Status,                           
                 })
                 .ToList();
 
@@ -110,7 +91,6 @@ namespace api.Controllers
         {
             try
             {
-
                 foreach (var detail in requestDto.DeviceBorrowingDetails)
                 {
                     var existingRequest = await _deviceBorrowingService.CheckIfDeviceIsAvailable(detail.DeviceItemId);
@@ -131,12 +111,10 @@ namespace api.Controllers
             }
             catch (ArgumentException ex)
             {
-                // Specific bad request error for invalid arguments
                 return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
-                // General server error
                 return StatusCode(500, $"An unexpected error occurred: {ex.Message}");
             }
         }

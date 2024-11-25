@@ -7,7 +7,7 @@ public class LabBorrowingRequest
     public int LabId { get; set; } = 1;
     public Lab BorrowedLab { get; set; }
     public List<GroupStudent> GroupStudents { get; set; }
-    public List<DeviceBorrowingRequest> DeviceBorrowingRequests { get; set; }
+    public List<DeviceBorrowingDetail> DeviceBorrowingDetails { get; set; } = new();
 }
 
 public enum LabBorrowingStatus

@@ -7,8 +7,7 @@ namespace api.Mappers
 {
     public static class LabBorrowingMapper
     {
-        // Chuyển đổi từ LabBorrowingRequest thành LabBorrowingRequestDto
-        public static LabBorrowingRequestDto ToDto(LabBorrowingRequest model)
+    public static LabBorrowingRequestDto ToDto(LabBorrowingRequest model)
         {
             return new LabBorrowingRequestDto
             {
@@ -20,31 +19,18 @@ namespace api.Mappers
                 {
                     StudentName = gs.StudentName,
                     LectureName = gs.LectureName
-                }).ToList() ?? new List<GroupStudentDto>(),
-
-                // Kiểm tra mượn thiết bị và thêm DeviceBorrowingDetails chỉ khi cần thiết
-                DeviceBorrowingRequests = model.DeviceBorrowingRequests.Select(d => new DeviceBorrowingRequestDto
+                }).ToList(),
+                DeviceBorrowingDetails = model.DeviceBorrowingDetails?.Select(dbd => new DeviceBorrowingDetailDto
                 {
-                    Id = d.Id,
-                    Username = d.Username,
-                    Description = d.Description,
-                    Status = d.Status,
-                    // Nếu là mượn thiết bị thì thêm DeviceBorrowingDetails
-                    DeviceBorrowingDetails = d.DeviceBorrowingDetails != null
-                        ? d.DeviceBorrowingDetails.Select(dd => new DeviceBorrowingDetailDto
-                        {
-                            DeviceId = dd.DeviceId,
-                            DeviceItemId = dd.DeviceItemId,
-                            Description = dd.Description,
-                            StartDate = dd.StartDate,
-                            EndDate = dd.EndDate
-                        }).ToList()
-                        : null // Nếu không phải mượn thiết bị, trả về null hoặc không thêm gì
+                    DeviceId = dbd.DeviceId,
+                    DeviceItemId = dbd.DeviceItemId,
+                    Description = dbd.Description,
+                    StartDate = dbd.StartDate,
+                    EndDate = dbd.EndDate
                 }).ToList()
             };
         }
 
-        // Chuyển đổi từ CreateLabBorrowingRequestDto thành LabBorrowingRequest
         public static LabBorrowingRequest ToModel(CreateLabBorrowingRequestDto dto)
         {
             return new LabBorrowingRequest
@@ -57,34 +43,32 @@ namespace api.Mappers
                     StudentName = gs.StudentName,
                     LectureName = gs.LectureName
                 }).ToList(),
-                
-                // Chỉ thêm DeviceBorrowingRequests, không cần DeviceBorrowingDetails cho mượn phòng lab
-                DeviceBorrowingRequests = dto.DeviceBorrowingRequests.Select(d => new DeviceBorrowingRequest
+                DeviceBorrowingDetails = dto.DeviceBorrowingDetails?.Select(dbd => new DeviceBorrowingDetail
                 {
-                    Username = dto.Username,
-                    Description = d.Description,
-                    Status = DeviceBorrowingStatus.Pending,
-                    // Không cần thêm DeviceBorrowingDetails cho mượn phòng lab
-                    DeviceBorrowingDetails = new List<DeviceBorrowingDetail>()
+                    DeviceId = dbd.DeviceId,
+                    DeviceItemId = dbd.DeviceItemId,
+                    Description = dbd.Description,
+                    StartDate = dbd.StartDate,
+                    EndDate = dbd.EndDate
                 }).ToList()
             };
         }
 
-        // Chuyển đổi từ UpdateLabBorrowingRequestDto thành LabBorrowingRequest
         public static LabBorrowingRequest ToModel(UpdateLabBorrowingRequestDto dto)
         {
             return new LabBorrowingRequest
             {
                 Description = dto.Description,
-                DeviceBorrowingRequests = dto.DeviceBorrowingRequests.Select(d => new DeviceBorrowingRequest
+                DeviceBorrowingDetails = dto.DeviceBorrowingDetails?.Select(dbd => new DeviceBorrowingDetail
                 {
-                    Id = d.Id,
-                    Description = d.Description,
-                    Status = d.Status,
-                    // Không thêm DeviceBorrowingDetails cho mượn phòng lab
-                    DeviceBorrowingDetails = new List<DeviceBorrowingDetail>()
+                    DeviceId = dbd.DeviceId,
+                    DeviceItemId = dbd.DeviceItemId,
+                    Description = dbd.Description,
+                    StartDate = dbd.StartDate,
+                    EndDate = dbd.EndDate
                 }).ToList()
             };
         }
     }
 }
+

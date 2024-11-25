@@ -17,24 +17,13 @@ namespace api.Services
 
         public async Task<LabBorrowingRequestDto> CreateLabBorrowingRequestAsync(CreateLabBorrowingRequestDto dto)
         {
-            if (dto == null) return null;
-
             var request = LabBorrowingMapper.ToModel(dto);
-
-            // Ensure DeviceBorrowingDetails are not set for lab bookings
-            foreach (var deviceRequest in request.DeviceBorrowingRequests)
-            {
-                deviceRequest.DeviceBorrowingDetails = new List<DeviceBorrowingDetail>(); // Make sure it's empty
-            }
-
             var createdRequest = await _repository.CreateLabBorrowingRequestAsync(request);
             return LabBorrowingMapper.ToDto(createdRequest);
         }
 
         public async Task<LabBorrowingRequestDto> GetLabBorrowingRequestByIdAsync(int id)
         {
-            if (id <= 0) return null;
-
             var request = await _repository.GetLabBorrowingRequestByIdAsync(id);
             return request == null ? null : LabBorrowingMapper.ToDto(request);
         }
@@ -42,38 +31,22 @@ namespace api.Services
         public async Task<IEnumerable<LabBorrowingRequestDto>> GetAllLabBorrowingRequestsAsync()
         {
             var requests = await _repository.GetAllLabBorrowingRequestsAsync();
-            var dtos = new List<LabBorrowingRequestDto>();
-            foreach (var request in requests)
-            {
-                dtos.Add(LabBorrowingMapper.ToDto(request));
-            }
-            return dtos;
+            return requests.Select(LabBorrowingMapper.ToDto);
         }
 
         public async Task<LabBorrowingRequestDto> UpdateLabBorrowingRequestAsync(int id, UpdateLabBorrowingRequestDto dto)
         {
-            if (id <= 0 || dto == null) return null;
-
-            var request = await _repository.GetLabBorrowingRequestByIdAsync(id);
-            if (request == null) return null;
+            var existingRequest = await _repository.GetLabBorrowingRequestByIdAsync(id);
+            if (existingRequest == null) return null;
 
             var updatedRequest = LabBorrowingMapper.ToModel(dto);
             updatedRequest.Id = id;
-
-            // Ensure DeviceBorrowingDetails are not set for lab bookings
-            foreach (var deviceRequest in updatedRequest.DeviceBorrowingRequests)
-            {
-                deviceRequest.DeviceBorrowingDetails = new List<DeviceBorrowingDetail>(); // Make sure it's empty
-            }
-
             var result = await _repository.UpdateLabBorrowingRequestAsync(updatedRequest);
             return LabBorrowingMapper.ToDto(result);
         }
 
         public async Task<bool> DeleteLabBorrowingRequestAsync(int id)
         {
-            if (id <= 0) return false;
-
             return await _repository.DeleteLabBorrowingRequestAsync(id);
         }
 

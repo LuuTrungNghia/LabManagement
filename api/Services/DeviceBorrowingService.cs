@@ -30,13 +30,11 @@ namespace api.Services
                 throw new Exception("User not authenticated or not found.");
             }
 
-            // Kiểm tra nếu không có device borrowing details thì throw lỗi
             if (requestDto.DeviceBorrowingDetails == null || !requestDto.DeviceBorrowingDetails.Any())
             {
                 throw new ArgumentException("DeviceBorrowingDetails cannot be null or empty.");
             }
 
-            // Kiểm tra tính khả dụng của thiết bị
             foreach (var detail in requestDto.DeviceBorrowingDetails)
             {
                 var existingRequest = await _deviceBorrowingRepository.GetByDeviceItemIdAsync(detail.DeviceItemId);
@@ -46,17 +44,15 @@ namespace api.Services
                 }
             }
 
-            // Tạo mới yêu cầu mượn thiết bị
             var deviceBorrowingRequest = new DeviceBorrowingRequest
             {
-                Username = user.UserName,
                 UserId = user.Id,
-                Description = requestDto.Description,     
+                Description = requestDto.Description,
                 GroupStudents = requestDto.GroupStudents?.Select(g => new GroupStudent
                 {
                     StudentName = g.StudentName,
                     LectureName = g.LectureName
-                }).ToList() ?? new List<GroupStudent>(), // Nếu không có GroupStudents, trả về mảng rỗng
+                }).ToList() ?? new List<GroupStudent>(),
                 DeviceBorrowingDetails = requestDto.DeviceBorrowingDetails.Select(detail => new DeviceBorrowingDetail
                 {
                     DeviceId = detail.DeviceId,
@@ -67,14 +63,12 @@ namespace api.Services
                 }).ToList(),
             };
 
-            // Lưu yêu cầu vào cơ sở dữ liệu
             await _deviceBorrowingRepository.AddAsync(deviceBorrowingRequest);
 
-            // Trả về DTO
             return new DeviceBorrowingRequestDto
             {
                 Id = deviceBorrowingRequest.Id,
-                Username = deviceBorrowingRequest.Username,
+                Username = user.UserName, // Lấy username từ token
                 Description = deviceBorrowingRequest.Description,
                 GroupStudents = deviceBorrowingRequest.GroupStudents.Select(g => new GroupStudentDto
                 {
@@ -91,7 +85,6 @@ namespace api.Services
                 }).ToList()
             };
         }
-
 
         public async Task<DeviceBorrowingRequest> CheckIfDeviceIsAvailable(int deviceItemId)
         {
@@ -113,24 +106,8 @@ namespace api.Services
                     Id = group.First().Id, // Use the first request's ID for the grouped entry
                     Username = group.Key, // Username will be the key of the group
                     Description = group.First().Description, // Assuming all requests in a group have the same description                    
-                    Status = group.First().Status, // Assuming status is the same for all requests in the group
-                    GroupStudents = group.First().GroupStudents?.Select(g => new GroupStudentDto
-                    {
-                        StudentName = g.StudentName,
-                        LectureName = g.LectureName
-                    }).ToList() ?? new List<GroupStudentDto>(), 
-                    DeviceBorrowingDetails = group
-                        .SelectMany(r => r.DeviceBorrowingDetails) // Flatten all the device borrowing details for the group
-                        .Select(d => new DeviceBorrowingDetailDto
-                        {
-                            DeviceId = d.DeviceId,
-                            DeviceItemId = d.DeviceItemId,
-                            Description = d.Description,
-                            StartDate = d.StartDate, // Assuming the StartDate should be the same for grouped requests
-                            EndDate = d.EndDate, // Same for EndDate
-                        }).ToList()
+                    Status = group.First().Status, // Assuming status is the same for all requests in the group                                    
                 }).ToList();
-
             return groupedRequests;
         }
 

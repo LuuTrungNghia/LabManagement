@@ -25,7 +25,7 @@ namespace api.Repositories
         {
             // Include device details for each borrowing request.
             return await _context.DeviceBorrowingRequests
-                .Include(r => r.DeviceBorrowingDetails) // Ensure related device borrowing details are fetched
+                //.Include(r => r.DeviceBorrowingDetails) // Ensure related device borrowing details are fetched
                 .ToListAsync();
         }
 

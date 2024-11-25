@@ -1,4 +1,4 @@
-public class DeviceBorrowingRequestDto : BaseBorrowingRequestDto
+public class DeviceBorrowingRequestDto
 {
     public int Id { get; set; }
     public string Username { get; set; }

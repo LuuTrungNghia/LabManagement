@@ -46,6 +46,9 @@ namespace api.Migrations
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<int?>("LabBorrowingRequestId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
 
@@ -56,6 +59,8 @@ namespace api.Migrations
                     b.HasIndex("DeviceId");
 
                     b.HasIndex("DeviceItemId");
+
+                    b.HasIndex("LabBorrowingRequestId");
 
                     b.ToTable("DeviceBorrowingDetails");
                 });
@@ -508,6 +513,11 @@ namespace api.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("LabBorrowingRequest", null)
+                        .WithMany("DeviceBorrowingDetails")
+                        .HasForeignKey("LabBorrowingRequestId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
                     b.Navigation("Device");
 
                     b.Navigation("DeviceBorrowingRequest");
@@ -522,9 +532,8 @@ namespace api.Migrations
                         .HasForeignKey("DeviceId");
 
                     b.HasOne("LabBorrowingRequest", "LabBorrowingRequest")
-                        .WithMany("DeviceBorrowingRequests")
-                        .HasForeignKey("LabBorrowingRequestId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .WithMany()
+                        .HasForeignKey("LabBorrowingRequestId");
 
                     b.HasOne("api.Models.ApplicationUser", "User")
                         .WithMany("DeviceBorrowingRequests")
@@ -648,7 +657,7 @@ namespace api.Migrations
 
             modelBuilder.Entity("LabBorrowingRequest", b =>
                 {
-                    b.Navigation("DeviceBorrowingRequests");
+                    b.Navigation("DeviceBorrowingDetails");
 
                     b.Navigation("GroupStudents");
                 });

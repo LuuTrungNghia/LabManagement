@@ -293,8 +293,7 @@ namespace api.Migrations
                         name: "FK_DeviceBorrowingRequests_LabBorrowingRequests_LabBorrowingRequestId",
                         column: x => x.LabBorrowingRequestId,
                         principalTable: "LabBorrowingRequests",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -308,7 +307,8 @@ namespace api.Migrations
                     DeviceItemId = table.Column<int>(type: "int", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    LabBorrowingRequestId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -330,6 +330,12 @@ namespace api.Migrations
                         column: x => x.DeviceId,
                         principalTable: "Devices",
                         principalColumn: "DeviceId");
+                    table.ForeignKey(
+                        name: "FK_DeviceBorrowingDetails_LabBorrowingRequests_LabBorrowingRequestId",
+                        column: x => x.LabBorrowingRequestId,
+                        principalTable: "LabBorrowingRequests",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -412,6 +418,11 @@ namespace api.Migrations
                 name: "IX_DeviceBorrowingDetails_DeviceItemId",
                 table: "DeviceBorrowingDetails",
                 column: "DeviceItemId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DeviceBorrowingDetails_LabBorrowingRequestId",
+                table: "DeviceBorrowingDetails",
+                column: "LabBorrowingRequestId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_DeviceBorrowingRequests_DeviceId",
