@@ -181,7 +181,7 @@ namespace api.Controllers
                 return Forbid("You are not authorized to view this history.");
             }
 
-            // Lấy tất cả lịch sử mượn thiết bị, không phân biệt trạng thái
+            // Lấy tất cả lịch sử mượn thiết bị
             var history = await _deviceBorrowingService.GetDeviceBorrowingHistory(username);
 
             // Kiểm tra nếu không có dữ liệu
@@ -190,36 +190,27 @@ namespace api.Controllers
                 return NotFound($"No borrowing history found for user '{username}'.");
             }
 
-            // Tạo phản hồi
-            var response = history
-                .GroupBy(r => r.Username)
-                .Select(group => new
+            // Trả về tất cả lịch sử mà không nhóm dữ liệu
+            var response = history.Select(r => new
+            {
+                Id = r.Id,
+                Username = r.Username,
+                Description = r.Description,
+                Status = r.Status,
+                GroupStudents = r.GroupStudents.Select(g => new
                 {
-                    Id = group.First().Id,
-                    Username = group.Key,
-                    Description = group.First().Description,
-                    Status = group.First().Status,
-                    GroupStudents = group
-                        .SelectMany(r => r.GroupStudents)
-                        .Select(g => new
-                        {
-                            StudentName = g.StudentName,
-                            LectureName = g.LectureName
-                        }).ToList(),
-                    DeviceBorrowingDetails = group
-                        .SelectMany(r => r.DeviceBorrowingDetails)
-                        .Select(d => new
-                        {
-                            DeviceId = d.DeviceId,
-                            DeviceItemId = d.DeviceItemId,
-                            Description = d.Description,
-                            StartDate = d.StartDate,
-                            EndDate = d.EndDate,
-                        })
-                        .Distinct()
-                        .ToList()
-                })
-                .ToList();
+                    StudentName = g.StudentName,
+                    LectureName = g.LectureName
+                }).ToList(),
+                DeviceBorrowingDetails = r.DeviceBorrowingDetails.Select(d => new
+                {
+                    DeviceId = d.DeviceId,
+                    DeviceItemId = d.DeviceItemId,
+                    Description = d.Description,
+                    StartDate = d.StartDate,
+                    EndDate = d.EndDate,
+                }).ToList()
+            }).ToList();
 
             return Ok(response);
         }

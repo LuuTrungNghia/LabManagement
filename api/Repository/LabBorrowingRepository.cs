@@ -25,7 +25,6 @@ namespace api.Repositories
         public async Task<LabBorrowingRequest> GetLabBorrowingRequestByIdAsync(int id)
         {
             return await _context.LabBorrowingRequests
-                .Include(r => r.GroupStudents)
                 .Include(r => r.DeviceBorrowingDetails)
                 .FirstOrDefaultAsync(r => r.Id == id);
         }
@@ -33,7 +32,6 @@ namespace api.Repositories
         public async Task<IEnumerable<LabBorrowingRequest>> GetAllLabBorrowingRequestsAsync()
         {
             return await _context.LabBorrowingRequests
-                .Include(r => r.GroupStudents)
                 .Include(r => r.DeviceBorrowingDetails)
                 .ToListAsync();
         }

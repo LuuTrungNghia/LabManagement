@@ -19,8 +19,17 @@ namespace api.Services
         // Tạo mới yêu cầu mượn phòng
         public async Task<LabBorrowingRequestDto> CreateLabBorrowingRequestAsync(CreateLabBorrowingRequestDto dto)
         {
+            // Kiểm tra thời gian trùng lặp cho phòng
             var existingRequests = await _repository.GetAllLabBorrowingRequestsAsync();
+            foreach (var existingRequest in existingRequests)
+            {
+                if (IsTimeOverlapping(dto.StartDate, dto.EndDate, existingRequest.StartDate, existingRequest.EndDate))
+                {
+                    throw new Exception($"Conflict with existing lab booking from {existingRequest.StartDate} to {existingRequest.EndDate}");
+                }
+            }
 
+            // Kiểm tra thiết bị
             foreach (var deviceDetail in dto.DeviceBorrowingDetails)
             {
                 foreach (var existingRequest in existingRequests)
@@ -29,7 +38,7 @@ namespace api.Services
                     {
                         if (IsTimeOverlapping(deviceDetail.StartDate, deviceDetail.EndDate, detail.StartDate, detail.EndDate))
                         {
-                            throw new Exception($"Conflict with existing request from {detail.StartDate} to {detail.EndDate}");
+                            throw new Exception($"Conflict with existing device booking from {detail.StartDate} to {detail.EndDate}");
                         }
                     }
                 }

@@ -248,35 +248,29 @@ namespace api.Services
                 return null;
             }
 
-            // Nhóm các yêu cầu theo Id
-            var groupedRequests = requests
-                .GroupBy(request => request.Id)
-                .Select(group => new DeviceBorrowingRequestHistoryDto
+            // Trả về tất cả lịch sử mà không nhóm dữ liệu
+            var requestDtos = requests.Select(request => new DeviceBorrowingRequestHistoryDto
+            {
+                Id = request.Id,
+                Username = request.Username,
+                Description = request.Description,
+                Status = request.Status,
+                GroupStudents = request.GroupStudents.Select(g => new GroupStudentDto
                 {
-                    Id = group.Key,
-                    Username = group.First().Username,
-                    Description = group.First().Description,
-                    Status = group.First().Status,
-                    GroupStudents = group
-                        .SelectMany(r => r.GroupStudents)
-                        .Select(g => new GroupStudentDto
-                        {
-                            StudentName = g.StudentName,
-                            LectureName = g.LectureName
-                        }).ToList(),
-                    DeviceBorrowingDetails = group
-                        .SelectMany(request => request.DeviceBorrowingDetails)
-                        .Select(d => new DeviceBorrowingDetailDto
-                        {
-                            DeviceId = d.DeviceId,
-                            DeviceItemId = d.DeviceItemId,
-                            Description = d.Description,
-                            StartDate = d.StartDate,
-                            EndDate = d.EndDate,
-                        }).ToList()
-                }).ToList();
+                    StudentName = g.StudentName,
+                    LectureName = g.LectureName
+                }).ToList(),
+                DeviceBorrowingDetails = request.DeviceBorrowingDetails.Select(d => new DeviceBorrowingDetailDto
+                {
+                    DeviceId = d.DeviceId,
+                    DeviceItemId = d.DeviceItemId,
+                    Description = d.Description,
+                    StartDate = d.StartDate,
+                    EndDate = d.EndDate,
+                }).ToList()
+            }).ToList();
 
-            return groupedRequests;
+            return requestDtos;
         }
 
         public async Task<bool> ReturnDevice(DeviceReturnDto deviceReturnDto)
