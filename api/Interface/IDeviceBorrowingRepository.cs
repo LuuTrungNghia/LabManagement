@@ -8,4 +8,5 @@ public interface IDeviceBorrowingRepository
     Task<bool> MarkDeviceAsReturned(int deviceId, int deviceItemId);
     Task<List<DeviceBorrowingRequest>> GetByUsernameAsync(string username);  
     Task<DeviceBorrowingRequest> GetByDeviceItemIdAsync(int deviceItemId); 
+    Task DeleteAsync(DeviceBorrowingRequest request);
 }

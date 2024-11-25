@@ -15,6 +15,7 @@ namespace api.Data
         public DbSet<Lab> Labs { get; set; }
         public DbSet<LabBorrowingRequest> LabBorrowingRequests { get; set; }
         public DbSet<DeviceBorrowingDetail> DeviceBorrowingDetails { get; set; }
+        public DbSet<GroupStudent> GroupStudents { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -32,7 +33,7 @@ namespace api.Data
                 .HasMany(dbr => dbr.DeviceBorrowingDetails)
                 .WithOne(dbd => dbd.DeviceBorrowingRequest)
                 .HasForeignKey(dbd => dbd.DeviceBorrowingRequestId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.Cascade);
 
             // Relationship between Device and DeviceBorrowingDetail (1-n)
             builder.Entity<Device>()
@@ -62,6 +63,10 @@ namespace api.Data
                 .HasForeignKey(dbr => dbr.LabBorrowingRequestId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            builder.Entity<DeviceBorrowingRequest>()
+                .HasMany(d => d.GroupStudents)
+                .WithOne()
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

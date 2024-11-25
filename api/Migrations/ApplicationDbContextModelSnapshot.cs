@@ -79,16 +79,8 @@ namespace api.Migrations
                     b.Property<int?>("LabBorrowingRequestId")
                         .HasColumnType("int");
 
-                    b.Property<string>("LecturerUsername")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<int>("Status")
                         .HasColumnType("int");
-
-                    b.Property<string>("StudentUsernames")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UserId")
                         .IsRequired()
@@ -107,6 +99,37 @@ namespace api.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("DeviceBorrowingRequests");
+                });
+
+            modelBuilder.Entity("GroupStudent", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("DeviceBorrowingRequestId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("LabBorrowingRequestId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("LectureName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("StudentName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DeviceBorrowingRequestId");
+
+                    b.HasIndex("LabBorrowingRequestId");
+
+                    b.ToTable("GroupStudents");
                 });
 
             modelBuilder.Entity("Lab", b =>
@@ -470,7 +493,7 @@ namespace api.Migrations
                     b.HasOne("DeviceBorrowingRequest", "DeviceBorrowingRequest")
                         .WithMany("DeviceBorrowingDetails")
                         .HasForeignKey("DeviceBorrowingRequestId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("api.Models.Device", "Device")
@@ -514,6 +537,18 @@ namespace api.Migrations
                     b.Navigation("LabBorrowingRequest");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("GroupStudent", b =>
+                {
+                    b.HasOne("DeviceBorrowingRequest", null)
+                        .WithMany("GroupStudents")
+                        .HasForeignKey("DeviceBorrowingRequestId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("LabBorrowingRequest", null)
+                        .WithMany("GroupStudents")
+                        .HasForeignKey("LabBorrowingRequestId");
                 });
 
             modelBuilder.Entity("LabBorrowingRequest", b =>
@@ -607,11 +642,15 @@ namespace api.Migrations
             modelBuilder.Entity("DeviceBorrowingRequest", b =>
                 {
                     b.Navigation("DeviceBorrowingDetails");
+
+                    b.Navigation("GroupStudents");
                 });
 
             modelBuilder.Entity("LabBorrowingRequest", b =>
                 {
                     b.Navigation("DeviceBorrowingRequests");
+
+                    b.Navigation("GroupStudents");
                 });
 
             modelBuilder.Entity("api.Models.ApplicationUser", b =>

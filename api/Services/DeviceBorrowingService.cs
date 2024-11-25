@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace api.Services
 {
-   public class DeviceBorrowingService : IDeviceBorrowingService
+    public class DeviceBorrowingService : IDeviceBorrowingService
     {
         private readonly IDeviceBorrowingRepository _deviceBorrowingRepository;
         private readonly UserManager<ApplicationUser> _userManager;
@@ -30,13 +30,13 @@ namespace api.Services
                 throw new Exception("User not authenticated or not found.");
             }
 
-            // Validate the device borrowing details
+            // Kiểm tra nếu không có device borrowing details thì throw lỗi
             if (requestDto.DeviceBorrowingDetails == null || !requestDto.DeviceBorrowingDetails.Any())
             {
                 throw new ArgumentException("DeviceBorrowingDetails cannot be null or empty.");
             }
 
-            // Check if devices are available
+            // Kiểm tra tính khả dụng của thiết bị
             foreach (var detail in requestDto.DeviceBorrowingDetails)
             {
                 var existingRequest = await _deviceBorrowingRepository.GetByDeviceItemIdAsync(detail.DeviceItemId);
@@ -46,35 +46,17 @@ namespace api.Services
                 }
             }
 
-            // Validate student usernames
-            if (requestDto.StudentUsernames != null && requestDto.StudentUsernames.Any())
-            {
-                foreach (var studentUsername in requestDto.StudentUsernames)
-                {
-                    var student = await _userManager.FindByNameAsync(studentUsername);
-                    if (student == null)
-                    {
-                        throw new ArgumentException($"Student with username '{studentUsername}' does not exist.");
-                    }
-                }
-            }
-
-            // Validate lecturer username
-            if (!string.IsNullOrEmpty(requestDto.LecturerUsername))
-            {
-                var lecturer = await _userManager.FindByNameAsync(requestDto.LecturerUsername);
-                if (lecturer == null)
-                {
-                    throw new ArgumentException($"Lecturer with username '{requestDto.LecturerUsername}' does not exist.");
-                }
-            }
-
-            // Create device borrowing request
+            // Tạo mới yêu cầu mượn thiết bị
             var deviceBorrowingRequest = new DeviceBorrowingRequest
             {
                 Username = user.UserName,
                 UserId = user.Id,
-                Description = requestDto.Description,                
+                Description = requestDto.Description,     
+                GroupStudents = requestDto.GroupStudents?.Select(g => new GroupStudent
+                {
+                    StudentName = g.StudentName,
+                    LectureName = g.LectureName
+                }).ToList() ?? new List<GroupStudent>(), // Nếu không có GroupStudents, trả về mảng rỗng
                 DeviceBorrowingDetails = requestDto.DeviceBorrowingDetails.Select(detail => new DeviceBorrowingDetail
                 {
                     DeviceId = detail.DeviceId,
@@ -83,19 +65,22 @@ namespace api.Services
                     StartDate = detail.StartDate,
                     EndDate = detail.EndDate,
                 }).ToList(),
-                StudentUsernames = requestDto.StudentUsernames,
-                LecturerUsername = requestDto.LecturerUsername
             };
 
-            // Save the request to the database
+            // Lưu yêu cầu vào cơ sở dữ liệu
             await _deviceBorrowingRepository.AddAsync(deviceBorrowingRequest);
 
+            // Trả về DTO
             return new DeviceBorrowingRequestDto
             {
                 Id = deviceBorrowingRequest.Id,
                 Username = deviceBorrowingRequest.Username,
                 Description = deviceBorrowingRequest.Description,
-                
+                GroupStudents = deviceBorrowingRequest.GroupStudents.Select(g => new GroupStudentDto
+                {
+                    StudentName = g.StudentName,
+                    LectureName = g.LectureName
+                }).ToList(),
                 DeviceBorrowingDetails = deviceBorrowingRequest.DeviceBorrowingDetails.Select(d => new DeviceBorrowingDetailDto
                 {
                     DeviceId = d.DeviceId,
@@ -106,6 +91,7 @@ namespace api.Services
                 }).ToList()
             };
         }
+
 
         public async Task<DeviceBorrowingRequest> CheckIfDeviceIsAvailable(int deviceItemId)
         {
@@ -128,6 +114,11 @@ namespace api.Services
                     Username = group.Key, // Username will be the key of the group
                     Description = group.First().Description, // Assuming all requests in a group have the same description                    
                     Status = group.First().Status, // Assuming status is the same for all requests in the group
+                    GroupStudents = group.First().GroupStudents?.Select(g => new GroupStudentDto
+                    {
+                        StudentName = g.StudentName,
+                        LectureName = g.LectureName
+                    }).ToList() ?? new List<GroupStudentDto>(), 
                     DeviceBorrowingDetails = group
                         .SelectMany(r => r.DeviceBorrowingDetails) // Flatten all the device borrowing details for the group
                         .Select(d => new DeviceBorrowingDetailDto
@@ -151,13 +142,18 @@ namespace api.Services
                 return null;
             }
 
-            // Map the response to DTO and include the device details
+            // Xử lý GroupStudents và trả về mảng rỗng nếu không có dữ liệu
             return new DeviceBorrowingRequestDto
             {
                 Id = request.Id,
                 Username = request.Username,
-                Description = request.Description,                
-                Status = request.Status, // The approval status of the request
+                Description = request.Description,
+                Status = request.Status,
+                GroupStudents = request.GroupStudents?.Select(g => new GroupStudentDto
+                {
+                    StudentName = g.StudentName,
+                    LectureName = g.LectureName
+                }).ToList() ?? new List<GroupStudentDto>(),  // Nếu không có dữ liệu, trả về mảng rỗng
                 DeviceBorrowingDetails = request.DeviceBorrowingDetails.Select(d => new DeviceBorrowingDetailDto
                 {
                     DeviceId = d.DeviceId,
@@ -175,8 +171,9 @@ namespace api.Services
             if (request == null)
                 return null;
 
-            request.Description = requestDto.Description;            
-            // Clear existing details and add new ones
+            request.Description = requestDto.Description;
+
+            // Clear existing details và thêm mới
             request.DeviceBorrowingDetails.Clear();
             foreach (var detail in requestDto.DeviceBorrowingDetails)
             {
@@ -190,6 +187,13 @@ namespace api.Services
                 });
             }
 
+            // Cập nhật lại GroupStudents nếu có dữ liệu
+            request.GroupStudents = requestDto.GroupStudents?.Select(g => new GroupStudent
+            {
+                StudentName = g.StudentName,
+                LectureName = g.LectureName
+            }).ToList() ?? new List<GroupStudent>(); // Nếu không có GroupStudents, trả về mảng rỗng
+
             await _deviceBorrowingRepository.UpdateAsync(request);
 
             return new DeviceBorrowingRequestDto
@@ -198,6 +202,11 @@ namespace api.Services
                 Username = request.Username,
                 Description = request.Description,
                 Status = request.Status,
+                GroupStudents = request.GroupStudents?.Select(g => new GroupStudentDto
+                {
+                    StudentName = g.StudentName,
+                    LectureName = g.LectureName
+                }).ToList(),
                 DeviceBorrowingDetails = requestDto.DeviceBorrowingDetails
             };
         }
@@ -249,6 +258,13 @@ namespace api.Services
                     Username = group.First().Username,
                     Description = group.First().Description,                    
                     Status = group.First().Status,
+                    GroupStudents = group
+                        .SelectMany(r => r.GroupStudents)
+                        .Select(g => new GroupStudentDto
+                        {
+                            StudentName = g.StudentName,
+                            LectureName = g.LectureName
+                        }).ToList(),
                     DeviceBorrowingDetails = group
                         .SelectMany(request => request.DeviceBorrowingDetails)
                         .Select(d => new DeviceBorrowingDetailDto
@@ -275,6 +291,17 @@ namespace api.Services
             request.Status = DeviceBorrowingStatus.Completed;  // Ensure 'Completed' is in the enum
             await _deviceBorrowingRepository.UpdateAsync(request);
 
+            return true;
+        }
+        public async Task<bool> DeleteDeviceBorrowingRequest(int id)
+        {
+            var request = await _deviceBorrowingRepository.GetByIdAsync(id);
+            if (request == null)
+            {
+                return false; // Không tìm thấy yêu cầu
+            }
+
+            await _deviceBorrowingRepository.DeleteAsync(request);
             return true;
         }
     }

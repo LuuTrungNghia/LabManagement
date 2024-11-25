@@ -18,6 +18,10 @@ namespace api.Repositories
         public async Task<LabBorrowingRequest> CreateLabBorrowingRequestAsync(LabBorrowingRequest request)
         {
             if (request == null) return null;
+            if (request.GroupStudents == null)
+            {
+                request.GroupStudents = new List<GroupStudent>();
+            }
 
             _context.LabBorrowingRequests.Add(request);
             await _context.SaveChangesAsync();
@@ -28,12 +32,16 @@ namespace api.Repositories
         {
             if (id <= 0) return null;
 
-            return await _context.LabBorrowingRequests.FindAsync(id);
+            return await _context.LabBorrowingRequests
+                                 .Include(r => r.GroupStudents) // Ensure we include the related data if needed
+                                 .FirstOrDefaultAsync(r => r.Id == id);
         }
 
         public async Task<IEnumerable<LabBorrowingRequest>> GetAllLabBorrowingRequestsAsync()
         {
-            return await _context.LabBorrowingRequests.ToListAsync();
+            return await _context.LabBorrowingRequests
+                                 .Include(r => r.GroupStudents) // Ensure related data is included as needed
+                                 .ToListAsync();
         }
 
         public async Task<LabBorrowingRequest> UpdateLabBorrowingRequestAsync(LabBorrowingRequest request)

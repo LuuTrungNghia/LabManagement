@@ -273,8 +273,6 @@ namespace api.Migrations
                     Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false),
                     UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    StudentUsernames = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    LecturerUsername = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     LabBorrowingRequestId = table.Column<int>(type: "int", nullable: true),
                     DeviceId = table.Column<int>(type: "int", nullable: true)
                 },
@@ -319,7 +317,8 @@ namespace api.Migrations
                         name: "FK_DeviceBorrowingDetails_DeviceBorrowingRequests_DeviceBorrowingRequestId",
                         column: x => x.DeviceBorrowingRequestId,
                         principalTable: "DeviceBorrowingRequests",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_DeviceBorrowingDetails_DeviceItems_DeviceItemId",
                         column: x => x.DeviceItemId,
@@ -331,6 +330,33 @@ namespace api.Migrations
                         column: x => x.DeviceId,
                         principalTable: "Devices",
                         principalColumn: "DeviceId");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "GroupStudents",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    StudentName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    LectureName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    DeviceBorrowingRequestId = table.Column<int>(type: "int", nullable: true),
+                    LabBorrowingRequestId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_GroupStudents", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_GroupStudents_DeviceBorrowingRequests_DeviceBorrowingRequestId",
+                        column: x => x.DeviceBorrowingRequestId,
+                        principalTable: "DeviceBorrowingRequests",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_GroupStudents_LabBorrowingRequests_LabBorrowingRequestId",
+                        column: x => x.LabBorrowingRequestId,
+                        principalTable: "LabBorrowingRequests",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateIndex(
@@ -413,6 +439,16 @@ namespace api.Migrations
                 column: "CategoryId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_GroupStudents_DeviceBorrowingRequestId",
+                table: "GroupStudents",
+                column: "DeviceBorrowingRequestId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_GroupStudents_LabBorrowingRequestId",
+                table: "GroupStudents",
+                column: "LabBorrowingRequestId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_LabBorrowingRequests_ApplicationUserId",
                 table: "LabBorrowingRequests",
                 column: "ApplicationUserId");
@@ -445,28 +481,31 @@ namespace api.Migrations
                 name: "DeviceBorrowingDetails");
 
             migrationBuilder.DropTable(
-                name: "AspNetRoles");
+                name: "GroupStudents");
 
             migrationBuilder.DropTable(
-                name: "DeviceBorrowingRequests");
+                name: "AspNetRoles");
 
             migrationBuilder.DropTable(
                 name: "DeviceItems");
 
             migrationBuilder.DropTable(
-                name: "LabBorrowingRequests");
+                name: "DeviceBorrowingRequests");
 
             migrationBuilder.DropTable(
                 name: "Devices");
+
+            migrationBuilder.DropTable(
+                name: "LabBorrowingRequests");
+
+            migrationBuilder.DropTable(
+                name: "Categories");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
 
             migrationBuilder.DropTable(
                 name: "Labs");
-
-            migrationBuilder.DropTable(
-                name: "Categories");
         }
     }
 }

@@ -40,6 +40,13 @@ namespace api.Controllers
                     Username = group.Key,
                     Description = group.First().Description,                    
                     Status = group.First().Status,
+                    GroupStudents = group
+                        .SelectMany(r => r.GroupStudents)
+                        .Select(g => new GroupStudentDto
+                        {
+                            StudentName = g.StudentName,
+                            LectureName = g.LectureName
+                        }).ToList(),
                     DeviceBorrowingDetails = group
                         .SelectMany(r => r.DeviceBorrowingDetails)
                         .GroupBy(d => new { d.DeviceId, d.DeviceItemId })
@@ -75,6 +82,11 @@ namespace api.Controllers
                 Username = request.Username,
                 Description = request.Description,
                 Status = request.Status,
+                GroupStudents = request.GroupStudents.Select(g => new
+                {
+                    StudentName = g.StudentName,
+                    LectureName = g.LectureName
+                }).ToList(),
                 DeviceBorrowingDetails = request.DeviceBorrowingDetails
                     .GroupBy(d => new { d.DeviceId, d.DeviceItemId })
                     .Select(group => new
@@ -98,28 +110,6 @@ namespace api.Controllers
         {
             try
             {
-                // Validate student usernames
-                if (requestDto.StudentUsernames != null && requestDto.StudentUsernames.Any())
-                {
-                    foreach (var studentUsername in requestDto.StudentUsernames)
-                    {
-                        var student = await _userManager.FindByNameAsync(studentUsername);
-                        if (student == null)
-                        {
-                            return BadRequest($"Student with username '{studentUsername}' does not exist.");
-                        }
-                    }
-                }
-
-                // Validate lecturer username
-                if (!string.IsNullOrEmpty(requestDto.LecturerUsername))
-                {
-                    var lecturer = await _userManager.FindByNameAsync(requestDto.LecturerUsername);
-                    if (lecturer == null)
-                    {
-                        return BadRequest($"Lecturer with username '{requestDto.LecturerUsername}' does not exist.");
-                    }
-                }
 
                 foreach (var detail in requestDto.DeviceBorrowingDetails)
                 {
@@ -229,6 +219,13 @@ namespace api.Controllers
                     Username = group.Key,
                     Description = group.First().Description,                    
                     Status = group.First().Status,
+                    GroupStudents = group
+                        .SelectMany(r => r.GroupStudents)
+                        .Select(g => new
+                        {
+                            StudentName = g.StudentName,
+                            LectureName = g.LectureName
+                        }).ToList(),
                     DeviceBorrowingDetails = group
                         .SelectMany(r => r.DeviceBorrowingDetails)
                         .Select(d => new
@@ -245,6 +242,26 @@ namespace api.Controllers
                 .ToList();
 
             return Ok(response);
+        }
+        // Delete a device borrowing request
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "admin")]
+        public async Task<IActionResult> DeleteDeviceBorrowingRequest(int id)
+        {
+            try
+            {
+                var result = await _deviceBorrowingService.DeleteDeviceBorrowingRequest(id);
+                if (result)
+                {
+                    return Ok($"Device borrowing request with ID {id} deleted successfully.");
+                }
+                return NotFound($"Device borrowing request with ID {id} not found.");
+            }
+            catch (Exception ex)
+            {
+                // Log exception if necessary
+                return StatusCode(500, $"An unexpected error occurred: {ex.Message}");
+            }
         }
     }
 }

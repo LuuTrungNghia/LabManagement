@@ -20,6 +20,13 @@ namespace api.Services
             if (dto == null) return null;
 
             var request = LabBorrowingMapper.ToModel(dto);
+
+            // Ensure DeviceBorrowingDetails are not set for lab bookings
+            foreach (var deviceRequest in request.DeviceBorrowingRequests)
+            {
+                deviceRequest.DeviceBorrowingDetails = new List<DeviceBorrowingDetail>(); // Make sure it's empty
+            }
+
             var createdRequest = await _repository.CreateLabBorrowingRequestAsync(request);
             return LabBorrowingMapper.ToDto(createdRequest);
         }
@@ -52,6 +59,13 @@ namespace api.Services
 
             var updatedRequest = LabBorrowingMapper.ToModel(dto);
             updatedRequest.Id = id;
+
+            // Ensure DeviceBorrowingDetails are not set for lab bookings
+            foreach (var deviceRequest in updatedRequest.DeviceBorrowingRequests)
+            {
+                deviceRequest.DeviceBorrowingDetails = new List<DeviceBorrowingDetail>(); // Make sure it's empty
+            }
+
             var result = await _repository.UpdateLabBorrowingRequestAsync(updatedRequest);
             return LabBorrowingMapper.ToDto(result);
         }
@@ -62,17 +76,18 @@ namespace api.Services
 
             return await _repository.DeleteLabBorrowingRequestAsync(id);
         }
-        // Approve the lab borrowing request
-    public async Task<LabBorrowingRequestDto> ApproveLabBorrowingRequestAsync(int id)
-    {
-        var request = await _repository.GetLabBorrowingRequestByIdAsync(id);
-        if (request == null || request.Status != LabBorrowingStatus.Pending)
-            return null; // Only approve pending requests
 
-        request.Status = LabBorrowingStatus.Approved;
-        var updatedRequest = await _repository.UpdateLabBorrowingRequestAsync(request);
-        return LabBorrowingMapper.ToDto(updatedRequest);
-    }
+        // Approve the lab borrowing request
+        public async Task<LabBorrowingRequestDto> ApproveLabBorrowingRequestAsync(int id)
+        {
+            var request = await _repository.GetLabBorrowingRequestByIdAsync(id);
+            if (request == null || request.Status != LabBorrowingStatus.Pending)
+                return null; // Only approve pending requests
+
+            request.Status = LabBorrowingStatus.Approved;
+            var updatedRequest = await _repository.UpdateLabBorrowingRequestAsync(request);
+            return LabBorrowingMapper.ToDto(updatedRequest);
+        }
 
         // Reject the lab borrowing request
         public async Task<LabBorrowingRequestDto> RejectLabBorrowingRequestAsync(int id)

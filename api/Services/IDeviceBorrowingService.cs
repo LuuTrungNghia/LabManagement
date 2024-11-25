@@ -9,4 +9,5 @@ public interface IDeviceBorrowingService
     Task<List<DeviceBorrowingRequestHistoryDto>> GetDeviceBorrowingHistory(string username);
     Task<bool> ReturnDevice(DeviceReturnDto deviceReturnDto);
     Task<DeviceBorrowingRequest> CheckIfDeviceIsAvailable(int deviceItemId); 
+    Task<bool> DeleteDeviceBorrowingRequest(int id);
 }

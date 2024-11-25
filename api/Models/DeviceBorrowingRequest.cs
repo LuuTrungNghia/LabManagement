@@ -10,13 +10,12 @@ public class DeviceBorrowingRequest
         [MaxLength(500)]
         public string Description { get; set; }
         public DeviceBorrowingStatus Status { get; set; }
+        public List<GroupStudent> GroupStudents { get; set; }
 
         [Required]
         public string UserId { get; set; }
         public ApplicationUser User { get; set; }
         public ICollection<DeviceBorrowingDetail> DeviceBorrowingDetails { get; set; } = new List<DeviceBorrowingDetail>();
-        public List<string> StudentUsernames { get; set; } = new List<string>(); 
-        public string LecturerUsername { get; set; }
         
         // Foreign key for LabBorrowingRequest
         public int? LabBorrowingRequestId { get; set; }

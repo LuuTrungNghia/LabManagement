@@ -33,6 +33,7 @@ namespace api.Repositories
         {
             return await _context.DeviceBorrowingRequests
                 .Include(r => r.DeviceBorrowingDetails) // Bao gồm chi tiết thiết bị
+                .Include(r => r.GroupStudents)
                 .FirstOrDefaultAsync(r => r.Id == id); // Lấy yêu cầu theo ID
         }
 
@@ -75,6 +76,11 @@ namespace api.Repositories
                 .Include(r => r.DeviceBorrowingDetails)
                 .FirstOrDefaultAsync(r => r.DeviceBorrowingDetails.Any(d => d.DeviceItemId == deviceItemId && 
                                                                             r.Status != DeviceBorrowingStatus.Completed));
+        }
+        public async Task DeleteAsync(DeviceBorrowingRequest request)
+        {
+            _context.DeviceBorrowingRequests.Remove(request);
+            await _context.SaveChangesAsync();
         }
     }
 }

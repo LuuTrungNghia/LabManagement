@@ -17,6 +17,7 @@ namespace api.Controllers
             _service = service;
         }
 
+        // Get all Lab Borrowing Requests
         [HttpGet]
         public async Task<ActionResult<IEnumerable<LabBorrowingRequestDto>>> GetAllLabBorrowingRequests()
         {
@@ -24,6 +25,7 @@ namespace api.Controllers
             return Ok(requests);
         }
 
+        // Get Lab Borrowing Request by ID
         [HttpGet("{id}")]
         public async Task<ActionResult<LabBorrowingRequestDto>> GetLabBorrowingRequestById(int id)
         {
@@ -32,13 +34,16 @@ namespace api.Controllers
             return Ok(request);
         }
 
+        // Create Lab Borrowing Request
         [HttpPost]
         public async Task<ActionResult<LabBorrowingRequestDto>> CreateLabBorrowingRequest(CreateLabBorrowingRequestDto dto)
         {
             var createdRequest = await _service.CreateLabBorrowingRequestAsync(dto);
+            if (createdRequest == null) return BadRequest();
             return CreatedAtAction(nameof(GetLabBorrowingRequestById), new { id = createdRequest.Id }, createdRequest);
         }
 
+        // Update Lab Borrowing Request
         [HttpPut("{id}")]
         public async Task<ActionResult<LabBorrowingRequestDto>> UpdateLabBorrowingRequest(int id, UpdateLabBorrowingRequestDto dto)
         {
@@ -47,6 +52,7 @@ namespace api.Controllers
             return Ok(updatedRequest);
         }
 
+        // Delete Lab Borrowing Request
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteLabBorrowingRequest(int id)
         {
@@ -55,6 +61,7 @@ namespace api.Controllers
             return NoContent();
         }
         
+        // Approve Lab Borrowing Request
         [HttpPost("approve/{id}")]
         public async Task<ActionResult<LabBorrowingRequestDto>> ApproveLabBorrowingRequest(int id)
         {
@@ -63,6 +70,7 @@ namespace api.Controllers
             return Ok(updatedRequest);
         }
 
+        // Reject Lab Borrowing Request
         [HttpPost("reject/{id}")]
         public async Task<ActionResult<LabBorrowingRequestDto>> RejectLabBorrowingRequest(int id)
         {
