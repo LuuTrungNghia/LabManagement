@@ -1,8 +1,10 @@
+using api.Data;
 using api.Dtos;
 using api.Interfaces;
 using api.Models;
 using api.Repositories;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -14,12 +16,16 @@ namespace api.Services
         private readonly IDeviceBorrowingRepository _deviceBorrowingRepository;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ApplicationDbContext _context;
+        private readonly ILogger<DeviceBorrowingService> _logger;
 
-        public DeviceBorrowingService(IDeviceBorrowingRepository deviceBorrowingRepository, UserManager<ApplicationUser> userManager, IHttpContextAccessor httpContextAccessor)
+        public DeviceBorrowingService(IDeviceBorrowingRepository deviceBorrowingRepository, UserManager<ApplicationUser> userManager, IHttpContextAccessor httpContextAccessor, ApplicationDbContext context, ILogger<DeviceBorrowingService> logger)
         {
             _deviceBorrowingRepository = deviceBorrowingRepository;
             _userManager = userManager;
             _httpContextAccessor = httpContextAccessor;
+            _context = context; 
+            _logger = logger;
         }
 
         public async Task<DeviceBorrowingRequestDto> CreateDeviceBorrowingRequest(CreateDeviceBorrowingRequestDto requestDto)
@@ -69,7 +75,7 @@ namespace api.Services
             return new DeviceBorrowingRequestDto
             {
                 Id = deviceBorrowingRequest.Id,
-                Username = user.UserName, // Lấy username từ token
+                Username = user.FullName, // Lấy username từ token
                 Description = deviceBorrowingRequest.Description,
                 GroupStudents = deviceBorrowingRequest.GroupStudents.Select(g => new GroupStudentDto
                 {
@@ -95,22 +101,19 @@ namespace api.Services
 
         public async Task<List<DeviceBorrowingRequestDto>> GetDeviceBorrowingRequests()
         {
-            // Fetch all device borrowing requests, including details for each request
-            var requests = await _deviceBorrowingRepository.GetAllAsync();
+            // Lấy tất cả các yêu cầu mượn thiết bị từ repository
+            var requests = await _deviceBorrowingRepository.GetAllAsync() ?? new List<DeviceBorrowingRequest>();
 
-            // Group requests by username (or userId) and merge devices in the borrowing details
-            var groupedRequests = requests
-                .GroupBy(r => r.Username) // Group by Username or UserId
-                .Select(group => new DeviceBorrowingRequestDto
-                {
-                    // Assign the ID from the first request in the group
-                    Id = group.First().Id, // Use the first request's ID for the grouped entry
-                    Username = group.Key, // Username will be the key of the group
-                    Description = group.First().Description, // Assuming all requests in a group have the same description                    
-                    Status = group.First().Status, // Assuming status is the same for all requests in the group                                    
-                }).ToList();
+            // Trả về danh sách các yêu cầu mượn thiết bị mà không nhóm theo username
+            var requestDtos = requests.Select(req => new DeviceBorrowingRequestDto
+            {
+                Id = req.Id,
+                Username = req.Username,
+                Description = req.Description,
+                Status = req.Status
+            }).ToList();
 
-            return groupedRequests;
+            return requestDtos;
         }
 
         public async Task<DeviceBorrowingRequestDto> GetDeviceBorrowingRequestById(int id)
@@ -198,8 +201,26 @@ namespace api.Services
                 return false;
             }
 
+            // Update the status of the borrowing request
             request.Status = DeviceBorrowingStatus.Approved;
+
+            // Update the status of each device item involved
+            foreach (var detail in request.DeviceBorrowingDetails)
+            {
+                var deviceItem = await _context.DeviceItems.FirstOrDefaultAsync(di => di.DeviceItemId == detail.DeviceItemId);
+                if (deviceItem != null && deviceItem.DeviceItemStatus == DeviceItemStatus.Available)
+                {
+                    deviceItem.DeviceItemStatus = DeviceItemStatus.Borrowed;
+                    _logger.LogInformation($"DeviceItem {deviceItem.DeviceItemId} status updated to Borrowed.");
+                }
+                else
+                {
+                    _logger.LogWarning($"DeviceItem {deviceItem.DeviceItemId} could not be updated. It is not in Available state.");
+                }
+
+            }
             await _deviceBorrowingRepository.UpdateAsync(request);
+            await _context.SaveChangesAsync(); // Ensure changes are saved to the database
             return true;
         }
 
@@ -218,24 +239,23 @@ namespace api.Services
 
         public async Task<List<DeviceBorrowingRequestHistoryDto>> GetDeviceBorrowingHistory(string username)
         {
+            // Lấy tất cả các yêu cầu mượn thiết bị từ repository
             var requests = await _deviceBorrowingRepository.GetDeviceBorrowingHistory(username);
 
+            // Nếu không có yêu cầu nào thì trả về null
             if (requests == null || !requests.Any())
             {
                 return null;
             }
 
-            var approvedRequests = requests
-                .Where(request => request.Status == DeviceBorrowingStatus.Approved)
-                .ToList();
-
-            var groupedRequests = approvedRequests
+            // Nhóm các yêu cầu theo Id
+            var groupedRequests = requests
                 .GroupBy(request => request.Id)
                 .Select(group => new DeviceBorrowingRequestHistoryDto
                 {
                     Id = group.Key,
                     Username = group.First().Username,
-                    Description = group.First().Description,                    
+                    Description = group.First().Description,
                     Status = group.First().Status,
                     GroupStudents = group
                         .SelectMany(r => r.GroupStudents)

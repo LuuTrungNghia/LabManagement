@@ -25,7 +25,8 @@ namespace api.Repositories
         {
             // Include device details for each borrowing request.
             return await _context.DeviceBorrowingRequests
-                //.Include(r => r.DeviceBorrowingDetails) // Ensure related device borrowing details are fetched
+                .Include(r => r.GroupStudents)  // Nếu cần lấy thông tin sinh viên nhóm
+                .Include(r => r.DeviceBorrowingDetails)  // Nếu cần lấy thông tin chi tiết thiết bị mượn
                 .ToListAsync();
         }
 
@@ -33,7 +34,7 @@ namespace api.Repositories
         {
             return await _context.DeviceBorrowingRequests
                 .Include(r => r.DeviceBorrowingDetails) // Bao gồm chi tiết thiết bị
-                .Include(r => r.GroupStudents)
+                .ThenInclude(d => d.DeviceItem)
                 .FirstOrDefaultAsync(r => r.Id == id); // Lấy yêu cầu theo ID
         }
 
@@ -46,8 +47,9 @@ namespace api.Repositories
         public async Task<List<DeviceBorrowingRequest>> GetDeviceBorrowingHistory(string username)
         {
             return await _context.DeviceBorrowingRequests
-                .Include(r => r.DeviceBorrowingDetails) // Bao gồm chi tiết thiết bị
                 .Where(r => r.Username == username) // Lọc theo username
+                .Include(r => r.GroupStudents)
+                .Include(r => r.DeviceBorrowingDetails)
                 .ToListAsync();
         }
 

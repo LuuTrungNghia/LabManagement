@@ -27,28 +27,27 @@ namespace api.Controllers
         public async Task<IActionResult> GetDeviceBorrowingRequests()
         {
             var requests = await _deviceBorrowingService.GetDeviceBorrowingRequests();
+
             if (requests == null || !requests.Any())
             {
                 return NotFound("No borrowing requests found.");
             }
 
-            var response = requests
-                .GroupBy(r => r.Username)
-                .Select(group => new
-                {
-                    Id = group.First().Id,
-                    Username = group.Key,
-                    Description = group.First().Description,                    
-                    Status = group.First().Status,                           
-                })
-                .ToList();
+            // Trả về danh sách các yêu cầu mượn thiết bị mà không nhóm theo username
+            var response = requests.Select(req => new
+            {
+                Id = req.Id,
+                Username = req.Username,
+                Description = req.Description,
+                Status = req.Status
+            }).ToList();
 
             return Ok(response);
         }
 
         // Get a specific device borrowing request by ID
         [HttpGet("{id}")]
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = "admin, student, lecturer")]
         public async Task<IActionResult> GetDeviceBorrowingRequest(int id)
         {
             var request = await _deviceBorrowingService.GetDeviceBorrowingRequestById(id);
@@ -173,29 +172,32 @@ namespace api.Controllers
 
         // Get device borrowing history for a specific user
         [HttpGet("history/{username}")]
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = "admin, student, lecturer")]
         public async Task<IActionResult> GetDeviceBorrowingHistory(string username)
         {
+            // Kiểm tra quyền người dùng
             if (!User.IsInRole("admin") && username != User.Identity.Name)
             {
                 return Forbid("You are not authorized to view this history.");
             }
 
+            // Lấy tất cả lịch sử mượn thiết bị, không phân biệt trạng thái
             var history = await _deviceBorrowingService.GetDeviceBorrowingHistory(username);
-            var approvedHistory = history.Where(r => r.Status == DeviceBorrowingStatus.Approved).ToList();
 
-            if (approvedHistory == null || !approvedHistory.Any())
+            // Kiểm tra nếu không có dữ liệu
+            if (history == null || !history.Any())
             {
-                return NotFound($"No approved borrowing history found for user '{username}'.");
+                return NotFound($"No borrowing history found for user '{username}'.");
             }
 
-            var response = approvedHistory
+            // Tạo phản hồi
+            var response = history
                 .GroupBy(r => r.Username)
                 .Select(group => new
                 {
                     Id = group.First().Id,
                     Username = group.Key,
-                    Description = group.First().Description,                    
+                    Description = group.First().Description,
                     Status = group.First().Status,
                     GroupStudents = group
                         .SelectMany(r => r.GroupStudents)
@@ -221,6 +223,7 @@ namespace api.Controllers
 
             return Ok(response);
         }
+
         // Delete a device borrowing request
         [HttpDelete("{id}")]
         [Authorize(Roles = "admin")]
