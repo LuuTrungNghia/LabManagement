@@ -14,12 +14,9 @@ namespace api.Mappers
                 Id = model.Id,
                 Username = model.Username,
                 Description = model.Description,
+                StartDate = model.StartDate,
+                EndDate = model.EndDate,
                 Status = model.Status,
-                GroupStudents = model.GroupStudents?.Select(gs => new GroupStudentDto
-                {
-                    StudentName = gs.StudentName,
-                    LectureName = gs.LectureName
-                }).ToList(),
                 DeviceBorrowingDetails = model.DeviceBorrowingDetails?.Select(dbd => new DeviceBorrowingDetailDto
                 {
                     DeviceId = dbd.DeviceId,
@@ -37,12 +34,9 @@ namespace api.Mappers
             {
                 Username = dto.Username,
                 Description = dto.Description,
+                StartDate = dto.StartDate,
+                EndDate = dto.EndDate,
                 Status = LabBorrowingStatus.Pending,
-                GroupStudents = dto.GroupStudents?.Select(gs => new GroupStudent
-                {
-                    StudentName = gs.StudentName,
-                    LectureName = gs.LectureName
-                }).ToList(),
                 DeviceBorrowingDetails = dto.DeviceBorrowingDetails?.Select(dbd => new DeviceBorrowingDetail
                 {
                     DeviceId = dbd.DeviceId,
@@ -59,6 +53,8 @@ namespace api.Mappers
             return new LabBorrowingRequest
             {
                 Description = dto.Description,
+                StartDate = dto.StartDate,
+                EndDate = dto.EndDate,
                 DeviceBorrowingDetails = dto.DeviceBorrowingDetails?.Select(dbd => new DeviceBorrowingDetail
                 {
                     DeviceId = dbd.DeviceId,
