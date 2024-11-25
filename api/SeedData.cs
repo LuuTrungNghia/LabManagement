@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using api.Models;
+using api.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace api
 {
@@ -8,33 +10,52 @@ namespace api
         public static async Task Initialize(IServiceProvider services, UserManager<ApplicationUser> userManager)
         {
             var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
-            string[] roleNames = { "admin", "user", "lecturer", "student" };
+            string[] roleNames = { "admin", "user", "student", "lecturer" };
+
+            // Tạo các vai trò nếu chưa tồn tại
             foreach (var roleName in roleNames)
             {
-                var roleExist = await roleManager.RoleExistsAsync(roleName);
-                if (!roleExist)
+                if (!await roleManager.RoleExistsAsync(roleName))
                 {
                     await roleManager.CreateAsync(new IdentityRole(roleName));
                 }
             }
-            var user = await userManager.FindByEmailAsync("admin@example.com");
 
-            if (user == null)
+            // Tạo người dùng admin nếu chưa tồn tại
+            var admin = await userManager.FindByEmailAsync("admin@example.com");
+            if (admin == null)
             {
-                user = new ApplicationUser
+                admin = new ApplicationUser
                 {
                     UserName = "admin",
                     Email = "admin@example.com",
-                    FullName = "Admin User",
+                    FullName = "Administrator",
                     Avatar = "default-avatar.png",
                     DateOfBirth = DateTime.Parse("1990-01-01"),
                     Gender = "Male"
                 };
 
-                var result = await userManager.CreateAsync(user, "Admin@123");
+                var result = await userManager.CreateAsync(admin, "Admin@123");
                 if (result.Succeeded)
                 {
-                    await userManager.AddToRoleAsync(user, "admin");
+                    await userManager.AddToRoleAsync(admin, "admin");
+                }
+            }
+
+            // Khởi tạo phòng lab nếu chưa có
+            using (var context = new ApplicationDbContext(
+                services.GetRequiredService<DbContextOptions<ApplicationDbContext>>()))
+            {
+                context.Database.EnsureCreated();
+                if (!context.Labs.Any())
+                {
+                    context.Labs.Add(new Lab
+                    {
+                        LabName = "Phòng Lab 301",
+                        Description = "Phòng lab mặc định",
+                        IsAvailable = true
+                    });
+                    await context.SaveChangesAsync();
                 }
             }
         }

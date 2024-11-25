@@ -57,6 +57,52 @@ namespace api.Controllers
             return BadRequest(result.Errors);
         }
 
+        [HttpPost("admin-register")]
+        [Authorize(Roles = "admin")]  // Chỉ admin mới có quyền truy cập
+        public async Task<IActionResult> AdminRegister(AdminRegisterUserDto registerDto)
+        {
+            // Kiểm tra vai trò hợp lệ
+            if (registerDto.Role != "student" && registerDto.Role != "lecturer" && registerDto.Role != "admin")
+            {
+                return BadRequest("Invalid role. Please specify 'student', 'lecturer', or 'admin'.");
+            }
+
+            var user = new ApplicationUser
+            {
+                UserName = registerDto.Username,
+                Email = registerDto.Email,
+                FullName = registerDto.FullName,
+                Avatar = registerDto.Avatar,
+                DateOfBirth = registerDto.DateOfBirth,
+                Gender = registerDto.Gender
+            };
+
+            // Tạo tài khoản người dùng mới
+            var result = await _userManager.CreateAsync(user, registerDto.Password);
+            if (result.Succeeded)
+            {
+                // Gán vai trò cho người dùng theo lựa chọn của admin
+                await _userManager.AddToRoleAsync(user, registerDto.Role);
+
+                // Lấy danh sách vai trò của người dùng và tạo token
+                var roles = await _userManager.GetRolesAsync(user);
+                var token = _tokenService.CreateToken(user, roles);
+
+                return Ok(new
+                {
+                    Username = user.UserName,
+                    Email = user.Email,
+                    FullName = user.FullName,
+                    Avatar = user.Avatar,
+                    DateOfBirth = user.DateOfBirth,
+                    Gender = user.Gender,
+                    Token = token
+                });
+            }
+
+            return BadRequest(result.Errors);
+        }
+
         [HttpPost("login")]        
         public async Task<IActionResult> Login(LoginUserDto loginDto)
         {
@@ -80,7 +126,7 @@ namespace api.Controllers
         }
 
         [HttpGet("get/{username}")]
-        //[Authorize(Roles = "admin, active")]
+        [Authorize(Roles = "admin,student,lecturer")]
         public async Task<IActionResult> GetUser(string username)
         {
             var user = await _userManager.FindByNameAsync(username) as ApplicationUser;
@@ -99,7 +145,7 @@ namespace api.Controllers
         }
 
         [HttpGet("get-all")]
-        //[Authorize(Roles = "admin")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> GetAllUsers()
         {
             var users = await _userManager.Users.ToListAsync();
@@ -120,7 +166,7 @@ namespace api.Controllers
         }
 
         [HttpPut("update/{username}")]
-        //[Authorize(Roles = "admin,active")]
+        [Authorize(Roles = "admin,student,lecturer")]
         public async Task<IActionResult> UpdateUser(string username, UpdateUserDto updateUserDto)
         {
             var user = await _userManager.FindByNameAsync(username);
@@ -152,19 +198,6 @@ namespace api.Controllers
                 user.Gender = updateUserDto.Gender;
             }
 
-            // Xử lý thay đổi mật khẩu nếu có
-            if (!string.IsNullOrEmpty(updateUserDto.NewPassword))
-            {
-                if (updateUserDto.NewPassword != updateUserDto.ConfirmNewPassword)
-                    return BadRequest("New passwords do not match.");
-
-                var passwordCheck = await _userManager.CheckPasswordAsync(user, updateUserDto.CurrentPassword);
-                if (!passwordCheck) return BadRequest("Current password is incorrect.");
-
-                var passwordChangeResult = await _userManager.ChangePasswordAsync(user, updateUserDto.CurrentPassword, updateUserDto.NewPassword);
-                if (!passwordChangeResult.Succeeded) return BadRequest(passwordChangeResult.Errors);
-            }
-
             var result = await _userManager.UpdateAsync(user);
             if (!result.Succeeded) return BadRequest(result.Errors);
 
@@ -172,7 +205,7 @@ namespace api.Controllers
         }
 
         [HttpDelete("delete/{username}")]
-        //[Authorize(Roles = "admin")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> DeleteUser(string username)
         {
             var user = await _userManager.FindByNameAsync(username);
@@ -182,18 +215,29 @@ namespace api.Controllers
             if (result.Succeeded) return Ok("User deleted successfully.");
             return BadRequest(result.Errors);
         }
-
+       
         [HttpPut("approve/{username}")]
-        //[Authorize(Roles = "admin")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> ApproveUser(string username, [FromQuery] string role)
         {
             var user = await _userManager.FindByNameAsync(username);
             if (user == null) return NotFound("User not found.");
 
             if (role != "student" && role != "lecturer" && role != "admin")
-                return BadRequest("Invalid role. Please specify 'student' or 'lecturer'.");
+                return BadRequest("Invalid role. Please specify 'student', 'lecturer', or 'admin'.");
 
+            // Lấy tất cả các vai trò hiện tại của người dùng
+            var currentRoles = await _userManager.GetRolesAsync(user);
+
+            // Xóa tất cả các vai trò hiện tại, bao gồm cả "user"
+            foreach (var currentRole in currentRoles)
+            {
+                await _userManager.RemoveFromRoleAsync(user, currentRole);
+            }
+
+            // Thêm vai trò mới
             await _userManager.AddToRoleAsync(user, role);
+
             return Ok($"User {username} approved as {role}.");
         }
     }

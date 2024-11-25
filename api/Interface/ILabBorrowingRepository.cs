@@ -1,11 +1,15 @@
-// using api.Models;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using api.Models;
 
-// namespace api.Interfaces
-// {
-//     public interface ILabBorrowingRepository
-//     {
-//         Task<LabBorrowing?> CreateAsync(LabBorrowing borrowing);
-//         Task<IEnumerable<LabBorrowing>> GetAllByUserAsync(string userName);
-//         Task<LabBorrowing?> ApproveAsync(int id);
-//     }
-// }
+namespace api.Repositories
+{
+    public interface ILabBorrowingRepository
+    {
+        Task<LabBorrowingRequest> CreateLabBorrowingRequestAsync(LabBorrowingRequest request);
+        Task<LabBorrowingRequest> GetLabBorrowingRequestByIdAsync(int id);
+        Task<IEnumerable<LabBorrowingRequest>> GetAllLabBorrowingRequestsAsync();
+        Task<LabBorrowingRequest> UpdateLabBorrowingRequestAsync(LabBorrowingRequest request);
+        Task<bool> DeleteLabBorrowingRequestAsync(int id);
+    }
+}

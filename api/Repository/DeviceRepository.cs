@@ -30,9 +30,14 @@ namespace api.Repositories
         {
             var device = await GetByIdAsync(id);
             if (device == null) return null;
-            device = deviceDto.ToDevice(device);        
+
+            // Update the device properties with the data from the DTO
+            device = deviceDto.ToDevice(device); // Assuming ToDevice maps the DTO to the Device entity
+
+            // Save the updated device to the database
             _context.Devices.Update(device);
             await _context.SaveChangesAsync();
+
             return device;
         }
 
@@ -50,6 +55,24 @@ namespace api.Repositories
         public async Task ImportDevices(IEnumerable<Device> devices)
         {
             await _context.Devices.AddRangeAsync(devices);
+            await _context.SaveChangesAsync();
+        }
+
+        // Implementation of the missing method
+        public async Task UpdateDeviceStatusAsync(int deviceId, string status)
+        {
+            // Lấy thiết bị theo deviceId
+            var device = await GetByIdAsync(deviceId);
+            if (device == null) return;
+
+            // Cập nhật trạng thái cho tất cả các DeviceItems của thiết bị này (nếu có)
+            foreach (var deviceItem in device.DeviceItems)
+            {
+                deviceItem.DeviceItemStatus = Enum.Parse<DeviceItemStatus>(status);
+            }
+
+            // Cập nhật thiết bị và lưu vào cơ sở dữ liệu
+            _context.Devices.Update(device);
             await _context.SaveChangesAsync();
         }
     }

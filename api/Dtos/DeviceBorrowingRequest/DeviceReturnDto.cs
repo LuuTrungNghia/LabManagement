@@ -1,14 +1,9 @@
-using System.ComponentModel.DataAnnotations;
+using api.Models;
 
-namespace api.Dtos.DeviceBorrowing
+public class DeviceReturnDto
 {
-    public class DeviceReturnDto
-    {
-        [Required]
-        public int DeviceId { get; set; }
-
-        [Required]
-        public int DeviceItemId { get; set; }
-        public string Condition { get; set; } = string.Empty;
-    }
+    public int DeviceId { get; set; }
+    public int DeviceItemId { get; set; }
+    public string Description { get; set; }
+    public DeviceItemStatus Status { get; set; }
 }

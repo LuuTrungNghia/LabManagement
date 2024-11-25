@@ -11,6 +11,7 @@ namespace api.Interfaces
         Task<Device?> UpdateAsync(int id, UpdateDeviceRequestDto deviceDto);
         Task<Device?> DeleteAsync(int id);
         Task ImportDevices(IEnumerable<Device> devices);
+        Task UpdateDeviceStatusAsync(int deviceId, string status);
         
     }
 }

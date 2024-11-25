@@ -1,67 +1,248 @@
-using api.Dtos.DeviceBorrowing;
-using api.Interfaces;
-using api.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
+using api.Models;
+using api.Dtos;
+using api.Interfaces;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
+using System.Linq;
+using Microsoft.AspNetCore.Identity;
 
 namespace api.Controllers
 {
-    [ApiController]
     [Route("api/[controller]")]
-    public class DeviceBorrowingRequestsController : ControllerBase
+    [ApiController]
+    public class DeviceBorrowingController : ControllerBase
     {
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly IDeviceBorrowingService _deviceBorrowingService;
 
-        public DeviceBorrowingRequestsController(IDeviceBorrowingService deviceBorrowingService)
+        public DeviceBorrowingController(IDeviceBorrowingService deviceBorrowingService)
         {
             _deviceBorrowingService = deviceBorrowingService;
         }
 
-        // Tạo yêu cầu mượn thiết bị
-        [HttpPost("borrow")]
-        public async Task<IActionResult> BorrowDevice([FromBody] RequestBorrowingDeviceDto dto)
+        // Get all device borrowing requests
+        [HttpGet]
+        [Authorize(Roles = "admin")]
+        public async Task<IActionResult> GetDeviceBorrowingRequests()
         {
-            var result = await _deviceBorrowingService.BorrowDeviceAsync(dto);
-            if (!result.Success)
-                return BadRequest(result.Message);
-            return Ok(result.Data);
+            var requests = await _deviceBorrowingService.GetDeviceBorrowingRequests();
+
+            if (requests == null || !requests.Any())
+            {
+                return NotFound("No borrowing requests found.");
+            }
+
+            // Trả về danh sách các yêu cầu mượn thiết bị mà không nhóm theo username
+            var response = requests.Select(req => new
+            {
+                Id = req.Id,
+                Username = req.Username,
+                Description = req.Description,
+                Status = req.Status
+            }).ToList();
+
+            return Ok(response);
         }
 
-        // Cập nhật trạng thái đơn mượn
-        [HttpPut("update-status")]
-        public async Task<IActionResult> UpdateRequestStatus([FromBody] UpdateRequestStatusDto dto)
-        {
-            var result = await _deviceBorrowingService.UpdateRequestStatusAsync(dto);
-            if (!result.Success)
-                return BadRequest(result.Message);
-            return Ok(result.Data);
-        }
-
-        // Lấy yêu cầu mượn theo ID
+        // Get a specific device borrowing request by ID
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetRequestById(int id)
+        [Authorize(Roles = "admin, student, lecturer")]
+        public async Task<IActionResult> GetDeviceBorrowingRequest(int id)
         {
-            var result = await _deviceBorrowingService.GetRequestByIdAsync(id);
-            if (!result.Success)
-                return NotFound(result.Message);
-            return Ok(result.Data);
+            var request = await _deviceBorrowingService.GetDeviceBorrowingRequestById(id);
+            if (request == null || (User.IsInRole("student") && request.Username != User.Identity.Name))
+            {
+                return NotFound("Request not found or access denied.");
+            }
+
+            var response = new
+            {
+                Id = request.Id,
+                Username = request.Username,
+                Description = request.Description,
+                Status = request.Status,
+                GroupStudents = request.GroupStudents.Select(g => new
+                {
+                    StudentName = g.StudentName,
+                    LectureName = g.LectureName
+                }).ToList(),
+                DeviceBorrowingDetails = request.DeviceBorrowingDetails
+                    .GroupBy(d => new { d.DeviceId, d.DeviceItemId })
+                    .Select(group => new
+                    {
+                        DeviceId = group.Key.DeviceId,
+                        DeviceItemId = group.Key.DeviceItemId,
+                        Description = string.Join(", ", group.Select(d => d.Description)),
+                        StartDate = group.Min(d => d.StartDate),
+                        EndDate = group.Max(d => d.EndDate), 
+                    })
+                    .ToList()
+            };
+
+            return Ok(response);
         }
 
-        // Lấy tất cả yêu cầu mượn thiết bị
-        [HttpGet("all")]
-        public async Task<IActionResult> GetAllRequests()
+        // Create a new device borrowing request
+        [HttpPost("create")]
+        [Authorize(Roles = "admin, student, lecturer")]
+        public async Task<IActionResult> CreateDeviceBorrowingRequest([FromBody] CreateDeviceBorrowingRequestDto requestDto)
         {
-            var result = await _deviceBorrowingService.GetAllRequestsAsync();
-            return Ok(result.Data);
+            try
+            {
+                foreach (var detail in requestDto.DeviceBorrowingDetails)
+                {
+                    var existingRequest = await _deviceBorrowingService.CheckIfDeviceIsAvailable(detail.DeviceItemId);
+                    if (existingRequest != null && existingRequest.Status != DeviceBorrowingStatus.Completed)
+                    {
+                        return BadRequest($"Device {detail.DeviceItemId} is already borrowed or not available.");
+                    }
+                }
+
+                // Create borrowing request
+                var result = await _deviceBorrowingService.CreateDeviceBorrowingRequest(requestDto);
+                if (result == null)
+                {
+                    return BadRequest("Could not create borrowing request. Please ensure the devices are available.");
+                }
+
+                return Ok(result);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An unexpected error occurred: {ex.Message}");
+            }
         }
 
-        // Lịch sử mượn thiết bị của người dùng
-        [HttpGet("history/{userId}")]
-        public async Task<IActionResult> GetBorrowingHistory(string userId)
+        // Update a device borrowing request
+        [HttpPut("{id}")]
+        [Authorize(Roles = "admin")]
+        public async Task<IActionResult> UpdateDeviceBorrowingRequest(int id, [FromBody] UpdateDeviceBorrowingRequestDto requestDto)
         {
-            var result = await _deviceBorrowingService.GetBorrowingHistoryAsync(userId);
-            return Ok(result.Data);
+            var result = await _deviceBorrowingService.UpdateDeviceBorrowingRequest(id, requestDto);
+            if (result == null)
+            {
+                return BadRequest("Could not update borrowing request.");
+            }
+            return Ok(result);
+        }
+
+        // Approve a device borrowing request
+        [HttpPost("{id}/approve")]
+        [Authorize(Roles = "admin")]
+        public async Task<IActionResult> ApproveDeviceBorrowingRequest(int id)
+        {
+            var result = await _deviceBorrowingService.ApproveDeviceBorrowingRequest(id);
+            if (result)
+            {
+                return Ok("Borrowing request approved.");
+            }
+            return BadRequest("Could not approve borrowing request.");
+        }
+
+        // Reject a device borrowing request
+        [HttpPost("{id}/reject")]
+        [Authorize(Roles = "admin")]
+        public async Task<IActionResult> RejectDeviceBorrowingRequest(int id)
+        {
+            var result = await _deviceBorrowingService.RejectDeviceBorrowingRequest(id);
+            if (result)
+            {
+                return Ok("Borrowing request rejected.");
+            }
+            return BadRequest("Could not reject borrowing request.");
+        }
+
+        // Return a borrowed device
+        [HttpPost("return")]
+        [Authorize(Roles = "admin")]
+        public async Task<IActionResult> ReturnDevice([FromBody] DeviceReturnDto deviceReturnDto)
+        {
+            var result = await _deviceBorrowingService.ReturnDevice(deviceReturnDto);
+            if (result)
+            {
+                return Ok("Device returned successfully.");
+            }
+            return BadRequest("Could not return device.");
+        }
+
+        // Get device borrowing history for a specific user
+        [HttpGet("history/{username}")]
+        [Authorize(Roles = "admin, student, lecturer")]
+        public async Task<IActionResult> GetDeviceBorrowingHistory(string username)
+        {
+            // Kiểm tra quyền người dùng
+            if (!User.IsInRole("admin") && username != User.Identity.Name)
+            {
+                return Forbid("You are not authorized to view this history.");
+            }
+
+            // Lấy tất cả lịch sử mượn thiết bị, không phân biệt trạng thái
+            var history = await _deviceBorrowingService.GetDeviceBorrowingHistory(username);
+
+            // Kiểm tra nếu không có dữ liệu
+            if (history == null || !history.Any())
+            {
+                return NotFound($"No borrowing history found for user '{username}'.");
+            }
+
+            // Tạo phản hồi
+            var response = history
+                .GroupBy(r => r.Username)
+                .Select(group => new
+                {
+                    Id = group.First().Id,
+                    Username = group.Key,
+                    Description = group.First().Description,
+                    Status = group.First().Status,
+                    GroupStudents = group
+                        .SelectMany(r => r.GroupStudents)
+                        .Select(g => new
+                        {
+                            StudentName = g.StudentName,
+                            LectureName = g.LectureName
+                        }).ToList(),
+                    DeviceBorrowingDetails = group
+                        .SelectMany(r => r.DeviceBorrowingDetails)
+                        .Select(d => new
+                        {
+                            DeviceId = d.DeviceId,
+                            DeviceItemId = d.DeviceItemId,
+                            Description = d.Description,
+                            StartDate = d.StartDate,
+                            EndDate = d.EndDate,
+                        })
+                        .Distinct()
+                        .ToList()
+                })
+                .ToList();
+
+            return Ok(response);
+        }
+
+        // Delete a device borrowing request
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "admin")]
+        public async Task<IActionResult> DeleteDeviceBorrowingRequest(int id)
+        {
+            try
+            {
+                var result = await _deviceBorrowingService.DeleteDeviceBorrowingRequest(id);
+                if (result)
+                {
+                    return Ok($"Device borrowing request with ID {id} deleted successfully.");
+                }
+                return NotFound($"Device borrowing request with ID {id} not found.");
+            }
+            catch (Exception ex)
+            {
+                // Log exception if necessary
+                return StatusCode(500, $"An unexpected error occurred: {ex.Message}");
+            }
         }
     }
 }

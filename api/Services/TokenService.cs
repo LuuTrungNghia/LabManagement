@@ -29,7 +29,8 @@ namespace api.Services
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, user.UserName),
-                new Claim(ClaimTypes.Email, user.Email)
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.NameIdentifier, user.Id)
             };
 
             claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));

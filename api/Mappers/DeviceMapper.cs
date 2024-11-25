@@ -5,12 +5,21 @@ namespace api.Mappers
 {
     public static class DeviceMapper
     {
-        public static DeviceDto ToDeviceDto(this Device device) => new DeviceDto
+        public static DeviceDto ToDeviceDto(this Device device, string categoryName) => new DeviceDto
         {
             Id = device.DeviceId,
             DeviceName = device.DeviceName,
             Total = device.Total,
-            CategoryId = device.CategoryId
+            CategoryName = categoryName,
+        };
+
+        public static DeviceDetailDto ToDeviceDetailDto(this Device device, string categoryName) => new DeviceDetailDto
+        {
+            Id = device.DeviceId,
+            DeviceName = device.DeviceName,
+            Total = device.Total,
+            CategoryName = categoryName,
+            DeviceItems = device.DeviceItems.Select(item => item.ToDeviceItemDto()).ToList()
         };
 
         public static Device ToDevice(this CreateDeviceRequestDto dto) => new Device

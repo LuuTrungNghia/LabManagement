@@ -67,8 +67,7 @@
               "RelativeToolTip": "api\\Interface\\ITokenService.cs",
               "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-11-08T05:17:29.15Z",
-              "EditorCaption": ""
+              "WhenOpened": "2024-11-08T05:17:29.15Z"
             },
             {
               "$type": "Document",
@@ -80,8 +79,7 @@
               "RelativeToolTip": "api\\Interface\\ILabRespository.cs",
               "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-11-08T05:17:26.575Z",
-              "EditorCaption": ""
+              "WhenOpened": "2024-11-08T05:17:26.575Z"
             },
             {
               "$type": "Document",
@@ -93,21 +91,19 @@
               "RelativeToolTip": "api\\Program.cs",
               "ViewState": "AQIAAAAAAAAAAAAAAAAAAAIAAAAAAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-11-08T05:11:59.445Z",
-              "EditorCaption": ""
+              "WhenOpened": "2024-11-08T05:11:59.445Z"
             },
             {
               "$type": "Document",
               "DocumentIndex": 4,
-              "Title": "api",
+              "Title": "api.csproj",
               "DocumentMoniker": "D:\\LabManagement\\LabManagement\\api\\api.csproj",
               "RelativeDocumentMoniker": "api\\api.csproj",
               "ToolTip": "D:\\LabManagement\\LabManagement\\api\\api.csproj",
               "RelativeToolTip": "api\\api.csproj",
               "ViewState": "AQIAAAkAAAAAAAAAAAAAABkAAAAAAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
-              "WhenOpened": "2024-11-08T05:09:42.261Z",
-              "EditorCaption": ""
+              "WhenOpened": "2024-11-08T05:09:42.261Z"
             },
             {
               "$type": "Document",
@@ -119,8 +115,7 @@
               "RelativeToolTip": "api\\Controller\\UserController.cs",
               "ViewState": "AQIAAEEAAAAAAAAAAAAgwE4AAAAIAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-11-08T05:07:40.164Z",
-              "EditorCaption": ""
+              "WhenOpened": "2024-11-08T05:07:40.164Z"
             }
           ]
         },
@@ -128,6 +123,10 @@
           "DockedWidth": 676,
           "SelectedChildIndex": -1,
           "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:3:0:{e8034f19-ab72-4f06-83fd-f6832b41aa63}"
+            },
             {
               "$type": "Bookmark",
               "Name": "ST:4:0:{d212f56b-c48a-434c-a121-1c5d80b59b9f}"

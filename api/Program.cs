@@ -1,14 +1,15 @@
 using api;
 using api.Data;
 using api.Interfaces;
+using api.MapperProfiles;
+using api.Mappers;
+using api.Models;
 using api.Repositories;
 using api.Services;
-using api.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
@@ -18,9 +19,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Configure logging
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
-
-// Add services to the container
 builder.Services.AddControllers();
+
+// Configure database connection
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -28,30 +29,35 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
     options.Password.RequireDigit = true;
-    options.Password.RequireLowercase = true;
+    options.Password.RequiredLength = 6;
+    options.Password.RequireNonAlphanumeric = false;
     options.Password.RequireUppercase = true;
-    options.Password.RequireNonAlphanumeric = true;
-    options.Password.RequiredLength = 8;
+    options.Password.RequireLowercase = true;
+    options.User.RequireUniqueEmail = true;
 })
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();
 
-// Add JWT authentication
+// Configure JWT authentication
 var key = Encoding.UTF8.GetBytes(builder.Configuration["JWT:SigningKey"]);
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
     {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["JWT:Issuer"],
-            ValidAudience = builder.Configuration["JWT:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(key)
-        };
-    });
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["JWT:Issuer"],
+        ValidAudience = builder.Configuration["JWT:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(key)
+    };
+});
 
 // Configure CORS
 builder.Services.AddCors(options =>
@@ -90,16 +96,26 @@ builder.Services.AddSwaggerGen(options =>
         }
     });
 });
-
-builder.Services.AddAuthorization();
+builder.Services.AddEndpointsApiExplorer();
 
 // Register custom repositories and services for dependency injection
 builder.Services.AddScoped<IDeviceRepository, DeviceRepository>();
-builder.Services.AddScoped<ILabRepository, LabRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ITokenService, TokenService>();
-//builder.Services.AddScoped<IDeviceBorrowingRepository, DeviceBorrowingRepository>();
-builder.Services.AddScoped<RoleManager<IdentityRole>>();
+builder.Services.AddScoped<IDeviceService, DeviceService>();
+builder.Services.AddScoped<IDeviceBorrowingService, DeviceBorrowingService>();
+builder.Services.AddScoped<IDeviceBorrowingRepository, DeviceBorrowingRepository>();
+builder.Services.AddScoped<ILabService, LabService>(); // Đảm bảo thêm dịch vụ LabService
+builder.Services.AddScoped<ILabBorrowingRequestService, LabBorrowingRequestService>();
+builder.Services.AddScoped<ILabBorrowingRepository, LabBorrowingRepository>();
+
+// Register AutoMapper
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+builder.Services.AddAutoMapper(typeof(DeviceBorrowingMapper));
+builder.Services.AddAutoMapper(typeof(Program));
+
+// Add Authorization services
+builder.Services.AddAuthorization();
 
 // Build the application
 var app = builder.Build();
@@ -121,7 +137,9 @@ using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
-    await SeedData.Initialize(services, userManager); // Seed roles and admin user here
+    
+    // Đảm bảo dữ liệu được khởi tạo (vai trò, người dùng, phòng lab)
+    await SeedData.Initialize(services, userManager);
 }
 
 app.Run();
