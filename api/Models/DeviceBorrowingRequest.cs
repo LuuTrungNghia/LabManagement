@@ -31,8 +31,8 @@ public class DeviceBorrowingRequest
         public int Id { get; set; }
 
         // Foreign key for DeviceBorrowingRequest
-        public int DeviceBorrowingRequestId { get; set; }
-        public DeviceBorrowingRequest DeviceBorrowingRequest { get; set; }
+        public int ? DeviceBorrowingRequestId { get; set; }
+        public DeviceBorrowingRequest ? DeviceBorrowingRequest { get; set; }
 
         // Foreign key for Device
         public int DeviceId { get; set; }
@@ -41,6 +41,10 @@ public class DeviceBorrowingRequest
         // Foreign key for DeviceItem
         public int DeviceItemId { get; set; }
         public DeviceItem DeviceItem { get; set; }
+        
+        // Foreign key for LabBorrowingRequest
+        public int ? LabBorrowingRequestId { get; set; }
+        public LabBorrowingRequest ? LabBorrowingRequest { get; set; }
 
         public string Description { get; set; } 
         public DateTime StartDate { get; set; }

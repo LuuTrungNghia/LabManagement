@@ -52,5 +52,13 @@ namespace api.Repositories
             await _context.SaveChangesAsync();
             return true;
         }
+
+        public async Task<List<LabBorrowingRequest>> GetLabBorrowingHistoryAsync(string username)
+        {
+            return await _context.LabBorrowingRequests
+                .Where(r => r.Username == username)
+                .Include(r => r.DeviceBorrowingDetails)
+                .ToListAsync();
+        }
     }
 }

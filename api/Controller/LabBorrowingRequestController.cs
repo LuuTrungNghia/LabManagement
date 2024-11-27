@@ -11,9 +11,9 @@ namespace api.Controllers
     [ApiController]
     public class LabBorrowingRequestsController : ControllerBase
     {
-        private readonly ILabBorrowingRequestService _service;
+        private readonly ILabBorrowingService _service;
 
-        public LabBorrowingRequestsController(ILabBorrowingRequestService service)
+        public LabBorrowingRequestsController(ILabBorrowingService service)
         {
             _service = service;
         }
@@ -85,6 +85,45 @@ namespace api.Controllers
             var updatedRequest = await _service.RejectLabBorrowingRequestAsync(id);
             if (updatedRequest == null) return NotFound();
             return Ok(updatedRequest);
+        }
+
+        [HttpGet("history/{username}")]
+        [Authorize(Roles = "admin, student, lecturer")]
+        public async Task<IActionResult> GetLabBorrowingHistory(string username)
+        {
+            // Ensure the user has permission to view the history
+            if (!User.IsInRole("admin") && username != User.Identity.Name)
+            {
+                return Forbid("You are not authorized to view this history.");
+            }
+
+            // Retrieve the lab borrowing history
+            var history = await _service.GetLabBorrowingHistoryAsync(username);
+
+            // If no history found, return a NotFound response
+            if (history == null || !history.Any())
+            {
+                return NotFound($"No borrowing history found for user '{username}'.");
+            }
+
+            // Map the result into DTO for response
+            var response = history.Select(r => new LabBorrowingRequestHistoryDto
+            {
+                Id = r.Id,
+                Username = r.Username,
+                Description = r.Description,
+                StartDate = r.StartDate,
+                EndDate = r.EndDate,
+                Status = r.Status,
+                DeviceBorrowingDetails = r.DeviceBorrowingDetails.Select(d => new DeviceBorrowingDetailDto
+                {
+                    DeviceId = d.DeviceId,
+                    DeviceItemId = d.DeviceItemId,
+                    Description = d.Description
+                }).ToList()
+            }).ToList();
+
+            return Ok(response);
         }
     }
 }

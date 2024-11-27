@@ -1,70 +1,39 @@
-using api.Models;
 using api.Dtos;
-using System.Collections.Generic;
-using System.Linq;
+using api.Models;
+using AutoMapper;
 
-namespace api.Mappers
+namespace api.MapperProfiles
 {
-    public static class LabBorrowingMapper
+    public class LabBorrowingMapper : Profile
     {
-    public static LabBorrowingRequestDto ToDto(LabBorrowingRequest model)
+        public LabBorrowingMapper()
         {
-            return new LabBorrowingRequestDto
-            {
-                Id = model.Id,
-                Username = model.Username,
-                Description = model.Description,
-                StartDate = model.StartDate,
-                EndDate = model.EndDate,
-                Status = model.Status,
-                DeviceBorrowingDetails = model.DeviceBorrowingDetails?.Select(dbd => new DeviceBorrowingDetailDto
-                {
-                    DeviceId = dbd.DeviceId,
-                    DeviceItemId = dbd.DeviceItemId,
-                    Description = dbd.Description,
-                    StartDate = dbd.StartDate,
-                    EndDate = dbd.EndDate
-                }).ToList()
-            };
-        }
+            // Map from CreateLabBorrowingRequestDto to LabBorrowingRequest
+            CreateMap<CreateLabBorrowingRequestDto, LabBorrowingRequest>()
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => LabBorrowingStatus.Pending)) // Ensure the default status is Pending
+                .ForMember(dest => dest.DeviceBorrowingDetails, opt => opt.MapFrom(src => src.DeviceBorrowingDetails)); // Map DeviceBorrowingDetails
 
-        public static LabBorrowingRequest ToModel(CreateLabBorrowingRequestDto dto)
-        {
-            return new LabBorrowingRequest
-            {
-                Username = dto.Username,
-                Description = dto.Description,
-                StartDate = dto.StartDate,
-                EndDate = dto.EndDate,
-                Status = LabBorrowingStatus.Pending,
-                DeviceBorrowingDetails = dto.DeviceBorrowingDetails?.Select(dbd => new DeviceBorrowingDetail
-                {
-                    DeviceId = dbd.DeviceId,
-                    DeviceItemId = dbd.DeviceItemId,
-                    Description = dbd.Description,
-                    StartDate = dbd.StartDate,
-                    EndDate = dbd.EndDate
-                }).ToList()
-            };
-        }
+            // Map from UpdateLabBorrowingRequestDto to LabBorrowingRequest
+            CreateMap<UpdateLabBorrowingRequestDto, LabBorrowingRequest>()
+                .ForMember(dest => dest.DeviceBorrowingDetails, opt => opt.MapFrom(src => src.DeviceBorrowingDetails)); // Map DeviceBorrowingDetails
 
-        public static LabBorrowingRequest ToModel(UpdateLabBorrowingRequestDto dto)
-        {
-            return new LabBorrowingRequest
-            {
-                Description = dto.Description,
-                StartDate = dto.StartDate,
-                EndDate = dto.EndDate,
-                DeviceBorrowingDetails = dto.DeviceBorrowingDetails?.Select(dbd => new DeviceBorrowingDetail
-                {
-                    DeviceId = dbd.DeviceId,
-                    DeviceItemId = dbd.DeviceItemId,
-                    Description = dbd.Description,
-                    StartDate = dbd.StartDate,
-                    EndDate = dbd.EndDate
-                }).ToList()
-            };
+            // Map from LabBorrowingRequest to LabBorrowingRequestDto
+            CreateMap<LabBorrowingRequest, LabBorrowingRequestDto>()
+                .ForMember(dest => dest.DeviceBorrowingDetails, opt => opt.MapFrom(src => src.DeviceBorrowingDetails));
+
+            // Map from DeviceBorrowingDetailDto to DeviceBorrowingDetail
+            CreateMap<DeviceBorrowingDetailDto, DeviceBorrowingDetail>();
+
+            // Map from DeviceBorrowingRequestDto to DeviceBorrowingRequest
+            CreateMap<DeviceBorrowingRequestDto, DeviceBorrowingRequest>()
+                .ForMember(dest => dest.DeviceBorrowingDetails, opt => opt.MapFrom(src => src.DeviceBorrowingDetails));
+
+            // Map from DeviceBorrowingRequest to DeviceBorrowingRequestDto
+            CreateMap<DeviceBorrowingRequest, DeviceBorrowingRequestDto>()
+                .ForMember(dest => dest.DeviceBorrowingDetails, opt => opt.MapFrom(src => src.DeviceBorrowingDetails)); 
+
+            // Map from DeviceBorrowingDetail to DeviceBorrowingDetailDto
+            CreateMap<DeviceBorrowingDetail, DeviceBorrowingDetailDto>();
         }
     }
 }
-
