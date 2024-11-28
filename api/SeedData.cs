@@ -12,7 +12,7 @@ namespace api
             var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
             string[] roleNames = { "admin", "user", "student", "lecturer" };
 
-            // Tạo các vai trò nếu chưa tồn tại
+            // Create roles if they don't exist
             foreach (var roleName in roleNames)
             {
                 if (!await roleManager.RoleExistsAsync(roleName))
@@ -21,7 +21,7 @@ namespace api
                 }
             }
 
-            // Tạo người dùng admin nếu chưa tồn tại
+            // Create admin user if it doesn't exist
             var admin = await userManager.FindByEmailAsync("admin@example.com");
             if (admin == null)
             {
@@ -32,17 +32,36 @@ namespace api
                     FullName = "Administrator",
                     Avatar = "default-avatar.png",
                     DateOfBirth = DateTime.Parse("1990-01-01"),
-                    Gender = "Male"
+                    Gender = "Male",
+                    IsApproved = true  // Ensure the account is approved
                 };
 
                 var result = await userManager.CreateAsync(admin, "Admin@123");
                 if (result.Succeeded)
                 {
-                    await userManager.AddToRoleAsync(admin, "admin");
+                    // Ensure user roles are created and assigned correctly
+                    await userManager.AddToRoleAsync(admin, "admin");  // Assign only 'admin' role
+                }
+                else
+                {
+                    // Log the errors to ensure no issues during account creation
+                    foreach (var error in result.Errors)
+                    {
+                        Console.WriteLine(error.Description);
+                    }
+                }
+            }
+            else
+            {
+                // If the admin user exists, update the IsApproved flag if necessary
+                if (!admin.IsApproved)
+                {
+                    admin.IsApproved = true; // Ensure account is approved
+                    await userManager.UpdateAsync(admin);
                 }
             }
 
-            // Khởi tạo phòng lab nếu chưa có
+            // Initialize lab rooms if not already created
             using (var context = new ApplicationDbContext(
                 services.GetRequiredService<DbContextOptions<ApplicationDbContext>>()))
             {
