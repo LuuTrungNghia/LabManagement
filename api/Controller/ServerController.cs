@@ -81,6 +81,7 @@ namespace api.Controllers
                 Id = serverUser.Id,
                 Username = serverUser.Username,
                 UserServer = serverUser.UserServer,
+                PassServer = serverUser.PassServer,
                 IsApproved = serverUser.IsApproved
             };
 
