@@ -12,7 +12,7 @@ namespace api
             var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
             string[] roleNames = { "admin", "user", "student", "lecturer" };
 
-            // Tạo các vai trò nếu chưa tồn tại
+            // Create roles if they don't exist
             foreach (var roleName in roleNames)
             {
                 if (!await roleManager.RoleExistsAsync(roleName))
@@ -21,18 +21,19 @@ namespace api
                 }
             }
 
-            // Tạo người dùng admin nếu chưa tồn tại
+            // Create admin user if it doesn't exist
             var admin = await userManager.FindByEmailAsync("admin@example.com");
             if (admin == null)
             {
                 admin = new ApplicationUser
                 {
                     UserName = "admin",
-                    Email = "admin@example.com",
+                    Email = "admin@example.com", // Admin user needs an email
                     FullName = "Administrator",
                     Avatar = "default-avatar.png",
                     DateOfBirth = DateTime.Parse("1990-01-01"),
-                    Gender = "Male"
+                    Gender = "Male",
+                    IsApproved = true  // Ensure the account is approved
                 };
 
                 var result = await userManager.CreateAsync(admin, "Admin@123");
@@ -40,11 +41,41 @@ namespace api
                 {
                     await userManager.AddToRoleAsync(admin, "admin");
                 }
+                else
+                {
+                    foreach (var error in result.Errors)
+                    {
+                        Console.WriteLine(error.Description);
+                    }
+                }
             }
 
-            // Khởi tạo phòng lab nếu chưa có
-            using (var context = new ApplicationDbContext(
-                services.GetRequiredService<DbContextOptions<ApplicationDbContext>>()))
+            // Create server user (without email)
+            var serverUser = await userManager.FindByNameAsync("server");
+            if (serverUser == null)
+            {
+                serverUser = new ApplicationUser
+                {
+                    UserName = "server", // No email for server user
+                    IsApproved = true  // Server accounts are auto-approved
+                };
+
+                var result = await userManager.CreateAsync(serverUser, "Server@123");
+                if (result.Succeeded)
+                {
+                    await userManager.AddToRoleAsync(serverUser, "admin");
+                }
+                else
+                {
+                    foreach (var error in result.Errors)
+                    {
+                        Console.WriteLine(error.Description);
+                    }
+                }
+            }
+
+            // Initialize lab rooms if not already created
+            using (var context = new ApplicationDbContext(services.GetRequiredService<DbContextOptions<ApplicationDbContext>>()))
             {
                 context.Database.EnsureCreated();
                 if (!context.Labs.Any())

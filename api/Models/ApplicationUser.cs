@@ -12,7 +12,7 @@ namespace api.Models
 
         [Required]
         [Url]
-        public string Avatar { get; set; }
+        public string Avatar { get; set; } = "default-avatar.png";
 
         public DateTime? DateOfBirth { get; set; }
 

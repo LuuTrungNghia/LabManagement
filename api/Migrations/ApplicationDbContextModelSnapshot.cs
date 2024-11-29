@@ -34,7 +34,8 @@ namespace api.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("DeviceBorrowingRequestId")
+                    b.Property<int?>("DeviceBorrowingRequestId")
+                        .IsRequired()
                         .HasColumnType("int");
 
                     b.Property<int>("DeviceId")
@@ -164,12 +165,10 @@ namespace api.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("ApplicationUserId")
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2");
@@ -183,15 +182,19 @@ namespace api.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<string>("Username")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ApplicationUserId");
-
                     b.HasIndex("LabId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("LabBorrowingRequests");
                 });
@@ -494,6 +497,34 @@ namespace api.Migrations
                     b.ToTable("DeviceItems");
                 });
 
+            modelBuilder.Entity("api.Models.ServerUser", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("IsApproved")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("PassServer")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserServer")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ServerUsers");
+                });
+
             modelBuilder.Entity("DeviceBorrowingDetail", b =>
                 {
                     b.HasOne("DeviceBorrowingRequest", "DeviceBorrowingRequest")
@@ -505,7 +536,7 @@ namespace api.Migrations
                     b.HasOne("api.Models.Device", "Device")
                         .WithMany("DeviceBorrowingDetails")
                         .HasForeignKey("DeviceId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("api.Models.DeviceItem", "DeviceItem")
@@ -514,16 +545,18 @@ namespace api.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("LabBorrowingRequest", null)
+                    b.HasOne("LabBorrowingRequest", "LabBorrowingRequest")
                         .WithMany("DeviceBorrowingDetails")
                         .HasForeignKey("LabBorrowingRequestId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Device");
 
                     b.Navigation("DeviceBorrowingRequest");
 
                     b.Navigation("DeviceItem");
+
+                    b.Navigation("LabBorrowingRequest");
                 });
 
             modelBuilder.Entity("DeviceBorrowingRequest", b =>
@@ -559,17 +592,21 @@ namespace api.Migrations
 
             modelBuilder.Entity("LabBorrowingRequest", b =>
                 {
-                    b.HasOne("api.Models.ApplicationUser", null)
-                        .WithMany("LabBorrowingRequests")
-                        .HasForeignKey("ApplicationUserId");
-
                     b.HasOne("Lab", "BorrowedLab")
                         .WithMany()
                         .HasForeignKey("LabId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("api.Models.ApplicationUser", "User")
+                        .WithMany("LabBorrowingRequests")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
                     b.Navigation("BorrowedLab");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

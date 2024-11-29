@@ -106,13 +106,16 @@ builder.Services.AddScoped<IDeviceService, DeviceService>();
 builder.Services.AddScoped<IDeviceBorrowingService, DeviceBorrowingService>();
 builder.Services.AddScoped<IDeviceBorrowingRepository, DeviceBorrowingRepository>();
 builder.Services.AddScoped<ILabService, LabService>(); // Đảm bảo thêm dịch vụ LabService
-builder.Services.AddScoped<ILabBorrowingRequestService, LabBorrowingRequestService>();
+builder.Services.AddScoped<ILabBorrowingService, LabBorrowingService>();
 builder.Services.AddScoped<ILabBorrowingRepository, LabBorrowingRepository>();
 
 // Register AutoMapper
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddAutoMapper(typeof(DeviceBorrowingMapper));
 builder.Services.AddAutoMapper(typeof(Program));
+
+// Register IHttpContextAccessor to access HttpContext
+builder.Services.AddHttpContextAccessor();
 
 // Add Authorization services
 builder.Services.AddAuthorization();

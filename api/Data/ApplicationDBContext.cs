@@ -16,8 +16,9 @@ namespace api.Data
         public DbSet<LabBorrowingRequest> LabBorrowingRequests { get; set; }
         public DbSet<DeviceBorrowingDetail> DeviceBorrowingDetails { get; set; }
         public DbSet<GroupStudent> GroupStudents { get; set; }
+        public DbSet<ServerUser> ServerUsers { get; set; }
 
-        protected override void OnModelCreating(ModelBuilder builder)
+       protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
 
@@ -35,12 +36,18 @@ namespace api.Data
                 .HasForeignKey(dbd => dbd.DeviceBorrowingRequestId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            builder.Entity<DeviceBorrowingDetail>()
+                .HasOne(dbd => dbd.DeviceBorrowingRequest)
+                .WithMany(dbr => dbr.DeviceBorrowingDetails)
+                .HasForeignKey(dbd => dbd.DeviceBorrowingRequestId)
+                .IsRequired();
+
             // Relationship between Device and DeviceBorrowingDetail (1-n)
             builder.Entity<Device>()
                 .HasMany(d => d.DeviceBorrowingDetails)
                 .WithOne(dbd => dbd.Device)
                 .HasForeignKey(dbd => dbd.DeviceId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.Restrict);
 
             // Relationship between DeviceItem and Device (1-n)
             builder.Entity<Device>()
@@ -56,16 +63,25 @@ namespace api.Data
                 .HasForeignKey(dbd => dbd.DeviceItemId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-           // Relationship between LabBorrowingRequest and DeviceBorrowingDetail (1-n)
+            // Relationship between LabBorrowingRequest and DeviceBorrowingDetail (1-n)
             builder.Entity<LabBorrowingRequest>()
                 .HasMany(lbr => lbr.DeviceBorrowingDetails)
-                .WithOne()
-                .OnDelete(DeleteBehavior.Cascade);
+                .WithOne(dbr => dbr.LabBorrowingRequest)
+                .HasForeignKey(dbr => dbr.LabBorrowingRequestId)
+                .OnDelete(DeleteBehavior.SetNull); // Ensure the foreign key is correctly defined
 
+            // Relationship between DeviceBorrowingRequest and GroupStudents (1-n)
             builder.Entity<DeviceBorrowingRequest>()
                 .HasMany(d => d.GroupStudents)
                 .WithOne()
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // Relationship between LabBorrowingRequest and ApplicationUser (1-n)
+            builder.Entity<LabBorrowingRequest>()
+                .HasOne(dbr => dbr.User)
+                .WithMany(u => u.LabBorrowingRequests)
+                .HasForeignKey(dbr => dbr.UserId)
+                .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

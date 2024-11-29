@@ -11,5 +11,6 @@ namespace api.Repositories
         Task<IEnumerable<LabBorrowingRequest>> GetAllLabBorrowingRequestsAsync();
         Task<LabBorrowingRequest> UpdateLabBorrowingRequestAsync(LabBorrowingRequest request);
         Task<bool> DeleteLabBorrowingRequestAsync(int id);
+        Task<List<LabBorrowingRequest>> GetLabBorrowingHistoryAsync(string username);
     }
 }
