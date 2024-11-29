@@ -12,7 +12,7 @@ using api.Data;
 namespace api.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20241128082820_LabManagementDb")]
+    [Migration("20241129030601_LabManagementDb")]
     partial class LabManagementDb
     {
         /// <inheritdoc />
@@ -498,6 +498,34 @@ namespace api.Migrations
                     b.HasIndex("DeviceId");
 
                     b.ToTable("DeviceItems");
+                });
+
+            modelBuilder.Entity("api.Models.ServerUser", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("IsApproved")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("PassServer")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserServer")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ServerUsers");
                 });
 
             modelBuilder.Entity("DeviceBorrowingDetail", b =>

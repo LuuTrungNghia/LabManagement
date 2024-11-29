@@ -28,7 +28,7 @@ namespace api
                 admin = new ApplicationUser
                 {
                     UserName = "admin",
-                    Email = "admin@example.com",
+                    Email = "admin@example.com", // Admin user needs an email
                     FullName = "Administrator",
                     Avatar = "default-avatar.png",
                     DateOfBirth = DateTime.Parse("1990-01-01"),
@@ -39,31 +39,43 @@ namespace api
                 var result = await userManager.CreateAsync(admin, "Admin@123");
                 if (result.Succeeded)
                 {
-                    // Ensure user roles are created and assigned correctly
-                    await userManager.AddToRoleAsync(admin, "admin");  // Assign only 'admin' role
+                    await userManager.AddToRoleAsync(admin, "admin");
                 }
                 else
                 {
-                    // Log the errors to ensure no issues during account creation
                     foreach (var error in result.Errors)
                     {
                         Console.WriteLine(error.Description);
                     }
                 }
             }
-            else
+
+            // Create server user (without email)
+            var serverUser = await userManager.FindByNameAsync("server");
+            if (serverUser == null)
             {
-                // If the admin user exists, update the IsApproved flag if necessary
-                if (!admin.IsApproved)
+                serverUser = new ApplicationUser
                 {
-                    admin.IsApproved = true; // Ensure account is approved
-                    await userManager.UpdateAsync(admin);
+                    UserName = "server", // No email for server user
+                    IsApproved = true  // Server accounts are auto-approved
+                };
+
+                var result = await userManager.CreateAsync(serverUser, "Server@123");
+                if (result.Succeeded)
+                {
+                    await userManager.AddToRoleAsync(serverUser, "admin");
+                }
+                else
+                {
+                    foreach (var error in result.Errors)
+                    {
+                        Console.WriteLine(error.Description);
+                    }
                 }
             }
 
             // Initialize lab rooms if not already created
-            using (var context = new ApplicationDbContext(
-                services.GetRequiredService<DbContextOptions<ApplicationDbContext>>()))
+            using (var context = new ApplicationDbContext(services.GetRequiredService<DbContextOptions<ApplicationDbContext>>()))
             {
                 context.Database.EnsureCreated();
                 if (!context.Labs.Any())

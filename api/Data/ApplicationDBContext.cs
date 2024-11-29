@@ -16,6 +16,7 @@ namespace api.Data
         public DbSet<LabBorrowingRequest> LabBorrowingRequests { get; set; }
         public DbSet<DeviceBorrowingDetail> DeviceBorrowingDetails { get; set; }
         public DbSet<GroupStudent> GroupStudents { get; set; }
+        public DbSet<ServerUser> ServerUsers { get; set; }
 
        protected override void OnModelCreating(ModelBuilder builder)
         {

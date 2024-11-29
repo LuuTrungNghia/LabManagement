@@ -86,6 +86,22 @@ namespace api.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ServerUsers",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Username = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    UserServer = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PassServer = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    IsApproved = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ServerUsers", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "AspNetRoleClaims",
                 columns: table => new
                 {
@@ -485,6 +501,9 @@ namespace api.Migrations
 
             migrationBuilder.DropTable(
                 name: "GroupStudents");
+
+            migrationBuilder.DropTable(
+                name: "ServerUsers");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");

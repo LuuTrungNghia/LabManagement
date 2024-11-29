@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Identity;
-using System.Threading.Tasks;
 using api.Models;
 using api.Dtos.Server;
-using Microsoft.AspNetCore.Authorization;  // Thêm namespace cho [Authorize]
+using Microsoft.AspNetCore.Authorization;
+using api.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace api.Controllers
 {
@@ -11,136 +11,141 @@ namespace api.Controllers
     [Route("api/[controller]")]
     public class ServerController : ControllerBase
     {
-        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly ApplicationDbContext _context;
 
-        public ServerController(UserManager<ApplicationUser> userManager)
+        public ServerController(ApplicationDbContext context)
         {
-            _userManager = userManager;
+            _context = context;
         }
 
-        // **1. Login Server** - Không cần phải có quyền admin cho login
-        [HttpPost("login")]
-        public async Task<IActionResult> LoginServer([FromBody] ServerLoginDto loginDto)
+        [HttpPost]
+        [Authorize(Roles = "admin")]
+        public async Task<IActionResult> CreateServerUser([FromBody] CreateUserDto createServerUserDto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            var existingServerUser = await _context.ServerUsers
+                .FirstOrDefaultAsync(u => u.Username == createServerUserDto.Username);
+            if (existingServerUser != null)
+            {
+                return BadRequest("Username đã tồn tại.");
+            }
 
-            // Tìm người dùng trong cơ sở dữ liệu theo Username
-            var user = await _userManager.FindByNameAsync(loginDto.Username);
-            if (user == null || !user.IsApproved)
-                return Unauthorized("Invalid credentials or user not approved!");
+            var serverUser = new ServerUser
+            {
+                Username = createServerUserDto.Username,
+                UserServer = createServerUserDto.UserServer,
+                PassServer = createServerUserDto.PassServer,
+                IsApproved = false  // Default to not approved
+            };
 
-            // Kiểm tra mật khẩu của người dùng
-            var passwordCheck = await _userManager.CheckPasswordAsync(user, loginDto.PassUser);
-            if (!passwordCheck)
-                return Unauthorized("Invalid password!");
+            _context.ServerUsers.Add(serverUser);
+            await _context.SaveChangesAsync();
 
-            // Kiểm tra xem người dùng có phải là admin không (nếu cần thiết)
-            if (!await _userManager.IsInRoleAsync(user, "admin"))
-                return Unauthorized("User does not have server access!");
-
+            // Return the UserId, Username, and UserServer
             return Ok(new
             {
-                Username = user.UserName,
-                FullName = user.FullName
+                UserId = serverUser.Id,
+                Username = serverUser.Username,
+                UserServer = serverUser.UserServer,
+                IsApproved = serverUser.IsApproved
             });
         }
 
-        // **2. Create User** - Cần quyền admin
-        [HttpPost]
-        [Authorize(Roles = "admin")]
-        public async Task<IActionResult> CreateUser([FromBody] CreateUserDto createUserDto)
-        {
-            var user = new ApplicationUser
-            {
-                UserName = createUserDto.Username,
-                Email = createUserDto.Email,
-                FullName = createUserDto.FullName,
-                Gender = createUserDto.Gender,
-                DateOfBirth = createUserDto.DateOfBirth,
-                IsApproved = false
-            };
-
-            var result = await _userManager.CreateAsync(user, createUserDto.Password);
-            if (!result.Succeeded)
-                return BadRequest(result.Errors);
-
-            return Ok(new { Message = "User created successfully!", UserId = user.Id });
-        }
-
-        // **3. Get All Users** - Cần quyền admin
         [HttpGet]
         [Authorize(Roles = "admin")]
-        public async Task<IActionResult> GetAllUsers()
+        public async Task<IActionResult> GetAllServerUsers()
         {
-            var users = _userManager.Users.ToList();
-            var result = new List<UserDetailsDto>();
-
-            foreach (var user in users)
+            var serverUsers = await _context.ServerUsers.ToListAsync();
+            var result = serverUsers.Select(user => new ServerUserDto
             {
-                var roles = await _userManager.GetRolesAsync(user);
-                result.Add(new UserDetailsDto
-                {
-                    Id = user.Id,
-                    Username = user.UserName,
-                    Email = user.Email,
-                    FullName = user.FullName,
-                    IsApproved = user.IsApproved,
-                    Roles = roles.ToList()
-                });
-            }
+                Id = user.Id,
+                Username = user.Username,
+                UserServer = user.UserServer,
+                IsApproved = user.IsApproved
+            }).ToList();
 
             return Ok(result);
         }
 
-        // **4. Approve User** - Cần quyền admin
-        [HttpPut("approve/{username}")]
+        [HttpGet("{id}")]
         [Authorize(Roles = "admin")]
-        public async Task<IActionResult> ApproveUser(string username)
+        public async Task<IActionResult> GetServerUserById(int id)
         {
-            var user = await _userManager.FindByNameAsync(username);
-            if (user == null) return NotFound("User not found!");
+            var serverUser = await _context.ServerUsers.FindAsync(id);
+            if (serverUser == null)
+            {
+                return NotFound("Server user không tìm thấy!");
+            }
 
-            if (user.IsApproved) return BadRequest("User is already approved!");
+            var serverUserDetails = new ServerUserDto
+            {
+                Id = serverUser.Id,
+                Username = serverUser.Username,
+                UserServer = serverUser.UserServer,
+                IsApproved = serverUser.IsApproved
+            };
 
-            user.IsApproved = true;
-            var result = await _userManager.UpdateAsync(user);
-
-            if (!result.Succeeded) return BadRequest(result.Errors);
-
-            return Ok(new { Message = "User approved successfully!" });
+            return Ok(serverUserDetails);
         }
 
-        // **5. Reject User** - Cần quyền admin
-        [HttpPut("reject/{username}")]
+        [HttpPut("approve/{id}")]
         [Authorize(Roles = "admin")]
-        public async Task<IActionResult> RejectUser(string username)
+        public async Task<IActionResult> ApproveServerUser(int id)
         {
-            var user = await _userManager.FindByNameAsync(username);
-            if (user == null) return NotFound("User not found!");
+            var serverUser = await _context.ServerUsers.FindAsync(id);
+            if (serverUser == null) return NotFound("Server user không tìm thấy!");
 
-            if (!user.IsApproved) return BadRequest("User is already not approved!");
+            if (serverUser.IsApproved) return BadRequest("Server user đã được phê duyệt!");
 
-            user.IsApproved = false;
-            var result = await _userManager.UpdateAsync(user);
+            serverUser.IsApproved = true;
+            await _context.SaveChangesAsync();
 
-            if (!result.Succeeded) return BadRequest(result.Errors);
-
-            return Ok(new { Message = "User rejected successfully!" });
+            return Ok(new { Message = "Server user đã được phê duyệt thành công!" });
         }
 
-        // **6. Delete User** - Cần quyền admin
-        [HttpDelete("{username}")]
+        [HttpPut("reject/{id}")]
         [Authorize(Roles = "admin")]
-        public async Task<IActionResult> DeleteUser(string username)
+        public async Task<IActionResult> RejectServerUser(int id)
         {
-            var user = await _userManager.FindByNameAsync(username);
-            if (user == null) return NotFound("User not found!");
+            var serverUser = await _context.ServerUsers.FindAsync(id);
+            if (serverUser == null) return NotFound("Server user không tìm thấy!");
 
-            var result = await _userManager.DeleteAsync(user);
-            if (!result.Succeeded) return BadRequest(result.Errors);
+            if (!serverUser.IsApproved) return BadRequest("Server user đã bị từ chối!");
 
-            return Ok(new { Message = "User deleted successfully!" });
+            serverUser.IsApproved = false;
+            await _context.SaveChangesAsync();
+
+            return Ok(new { Message = "Server user đã bị từ chối thành công!" });
+        }
+
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "admin")]
+        public async Task<IActionResult> DeleteServerUser(int id)
+        {
+            var serverUser = await _context.ServerUsers.FindAsync(id);
+            if (serverUser == null) return NotFound("Server user không tìm thấy!");
+
+            _context.ServerUsers.Remove(serverUser);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { Message = "Server user đã bị xóa thành công!" });
+        }
+
+        [HttpGet("history")]
+        [Authorize(Roles = "admin")]
+        public async Task<IActionResult> GetHistory()
+        {
+            var serverUsers = await _context.ServerUsers
+                .OrderByDescending(u => u.Id)  // Or any other order you prefer
+                .Select(user => new
+                {
+                    UserId = user.Id,
+                    Username = user.Username,
+                    UserServer = user.UserServer,
+                    IsApproved = user.IsApproved
+                })
+                .ToListAsync();
+
+            return Ok(serverUsers);
         }
     }
 }

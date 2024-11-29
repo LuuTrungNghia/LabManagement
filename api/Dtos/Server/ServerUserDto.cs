@@ -1,9 +1,10 @@
 namespace api.Dtos.Server
 {
-    public class UserDetailsDto
+    public class ServerUserDto
     {
-        public string Id { get; set; }
+        public int Id { get; set; }
         public string Username { get; set; }
+        public string UserServer { get; set; }
         public bool IsApproved { get; set; }
     }
 }
