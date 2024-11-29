@@ -84,5 +84,18 @@ namespace api.Repositories
             _context.DeviceBorrowingRequests.Remove(request);
             await _context.SaveChangesAsync();
         }
+
+        public async Task<DeviceBorrowingRequest> CheckDeviceAvailability(int deviceItemId, DateTime startDate, DateTime endDate)
+        {
+            return await _context.DeviceBorrowingRequests
+                .Include(r => r.DeviceBorrowingDetails)
+                .FirstOrDefaultAsync(r => r.DeviceBorrowingDetails
+                    .Any(d => d.DeviceItemId == deviceItemId &&
+                            r.Status != DeviceBorrowingStatus.Completed && 
+                            ((d.StartDate < endDate && d.EndDate > startDate) || // Kiểm tra thời gian trùng
+                            (d.StartDate >= startDate && d.StartDate < endDate) || 
+                            (d.EndDate > startDate && d.EndDate <= endDate)
+                            )));
+        }
     }
 }

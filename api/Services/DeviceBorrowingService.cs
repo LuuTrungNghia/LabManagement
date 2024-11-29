@@ -44,13 +44,72 @@ namespace api.Services
             foreach (var detail in requestDto.DeviceBorrowingDetails)
             {
                 var existingRequest = await _deviceBorrowingRepository.GetByDeviceItemIdAsync(detail.DeviceItemId);
-                if (existingRequest != null && existingRequest.Status != DeviceBorrowingStatus.Completed)
+                if (existingRequest != null)
                 {
-                    throw new ArgumentException($"DeviceItemId {detail.DeviceItemId} is already borrowed or pending.");
+                    // Kiểm tra yêu cầu cũ có trạng thái khác "Completed" hay không
+                    if (existingRequest.Status != DeviceBorrowingStatus.Completed)
+                    {
+                        // Kiểm tra xem thời gian mượn của đơn mới có trùng hoặc ngay sau thời gian của đơn cũ hay không
+                        foreach (var existingDetail in existingRequest.DeviceBorrowingDetails)
+                        {
+                            // Kiểm tra nếu thời gian mượn của đơn mới và đơn cũ có sự trùng lặp
+                            if (existingDetail.DeviceItemId == detail.DeviceItemId &&
+                                existingDetail.EndDate > detail.StartDate && // Đơn mới bắt đầu sau khi đơn cũ kết thúc
+                                existingDetail.StartDate < detail.EndDate)   // Đơn mới kết thúc trước khi đơn cũ kết thúc
+                            {
+                                // Đánh dấu yêu cầu mới là Pending vì thiết bị vẫn chưa được trả lại
+                                _logger.LogInformation($"DeviceItemId {detail.DeviceItemId} is still borrowed. Setting status to Pending.");
+
+                                var deviceBorrowingRequest = new DeviceBorrowingRequest
+                                {
+                                    UserId = user.Id,
+                                    Username = user.UserName,
+                                    Description = requestDto.Description,
+                                    GroupStudents = requestDto.GroupStudents?.Select(g => new GroupStudent
+                                    {
+                                        StudentName = g.StudentName,
+                                        LectureName = g.LectureName
+                                    }).ToList() ?? new List<GroupStudent>(),
+                                    DeviceBorrowingDetails = requestDto.DeviceBorrowingDetails.Select(d => new DeviceBorrowingDetail
+                                    {
+                                        DeviceId = d.DeviceId,
+                                        DeviceItemId = d.DeviceItemId,
+                                        Description = d.Description,
+                                        StartDate = d.StartDate,
+                                        EndDate = d.EndDate,
+                                    }).ToList(),
+                                    Status = DeviceBorrowingStatus.Pending  // Trạng thái Pending vì thiết bị chưa trả lại
+                                };
+
+                                await _deviceBorrowingRepository.AddAsync(deviceBorrowingRequest);
+
+                                return new DeviceBorrowingRequestDto
+                                {
+                                    Id = deviceBorrowingRequest.Id,
+                                    Username = user.FullName,
+                                    Description = deviceBorrowingRequest.Description,
+                                    GroupStudents = deviceBorrowingRequest.GroupStudents.Select(g => new GroupStudentDto
+                                    {
+                                        StudentName = g.StudentName,
+                                        LectureName = g.LectureName
+                                    }).ToList(),
+                                    DeviceBorrowingDetails = deviceBorrowingRequest.DeviceBorrowingDetails.Select(d => new DeviceBorrowingDetailDto
+                                    {
+                                        DeviceId = d.DeviceId,
+                                        DeviceItemId = d.DeviceItemId,
+                                        Description = d.Description,
+                                        StartDate = d.StartDate,
+                                        EndDate = d.EndDate,
+                                    }).ToList()
+                                };
+                            }
+                        }
+                    }
                 }
             }
 
-            var deviceBorrowingRequest = new DeviceBorrowingRequest
+            // Nếu không có sự trùng lặp, tạo yêu cầu mượn thiết bị với trạng thái Pending
+            var deviceBorrowingRequestNew = new DeviceBorrowingRequest
             {
                 UserId = user.Id,
                 Username = user.UserName,
@@ -60,29 +119,30 @@ namespace api.Services
                     StudentName = g.StudentName,
                     LectureName = g.LectureName
                 }).ToList() ?? new List<GroupStudent>(),
-                DeviceBorrowingDetails = requestDto.DeviceBorrowingDetails.Select(detail => new DeviceBorrowingDetail
+                DeviceBorrowingDetails = requestDto.DeviceBorrowingDetails.Select(d => new DeviceBorrowingDetail
                 {
-                    DeviceId = detail.DeviceId,
-                    DeviceItemId = detail.DeviceItemId,
-                    Description = detail.Description,
-                    StartDate = detail.StartDate,
-                    EndDate = detail.EndDate,
+                    DeviceId = d.DeviceId,
+                    DeviceItemId = d.DeviceItemId,
+                    Description = d.Description,
+                    StartDate = d.StartDate,
+                    EndDate = d.EndDate,
                 }).ToList(),
+                Status = DeviceBorrowingStatus.Pending  // Đặt trạng thái Pending nếu không có lỗi
             };
 
-            await _deviceBorrowingRepository.AddAsync(deviceBorrowingRequest);
+            await _deviceBorrowingRepository.AddAsync(deviceBorrowingRequestNew);
 
             return new DeviceBorrowingRequestDto
             {
-                Id = deviceBorrowingRequest.Id,
-                Username = user.FullName, // Lấy username từ token
-                Description = deviceBorrowingRequest.Description,
-                GroupStudents = deviceBorrowingRequest.GroupStudents.Select(g => new GroupStudentDto
+                Id = deviceBorrowingRequestNew.Id,
+                Username = user.FullName,
+                Description = deviceBorrowingRequestNew.Description,
+                GroupStudents = deviceBorrowingRequestNew.GroupStudents.Select(g => new GroupStudentDto
                 {
                     StudentName = g.StudentName,
                     LectureName = g.LectureName
                 }).ToList(),
-                DeviceBorrowingDetails = deviceBorrowingRequest.DeviceBorrowingDetails.Select(d => new DeviceBorrowingDetailDto
+                DeviceBorrowingDetails = deviceBorrowingRequestNew.DeviceBorrowingDetails.Select(d => new DeviceBorrowingDetailDto
                 {
                     DeviceId = d.DeviceId,
                     DeviceItemId = d.DeviceItemId,
@@ -92,6 +152,7 @@ namespace api.Services
                 }).ToList()
             };
         }
+
 
         public async Task<DeviceBorrowingRequest> CheckIfDeviceIsAvailable(int deviceItemId)
         {
@@ -201,26 +262,34 @@ namespace api.Services
                 return false;
             }
 
-            // Update the status of the borrowing request
-            request.Status = DeviceBorrowingStatus.Approved;
-
-            // Update the status of each device item involved
+            // Kiểm tra trạng thái của thiết bị trong yêu cầu mượn
             foreach (var detail in request.DeviceBorrowingDetails)
             {
                 var deviceItem = await _context.DeviceItems.FirstOrDefaultAsync(di => di.DeviceItemId == detail.DeviceItemId);
-                if (deviceItem != null && deviceItem.DeviceItemStatus == DeviceItemStatus.Available)
+                if (deviceItem != null)
                 {
+                    // Get any conflicting requests for the device item that are not the current request
+                    var conflictingRequest = await _deviceBorrowingRepository.GetByDeviceItemIdAsync(detail.DeviceItemId);
+                    if (conflictingRequest != null && conflictingRequest.Status != DeviceBorrowingStatus.Completed && conflictingRequest.Id != request.Id)
+                    {
+                        // If there is a conflicting request that is not completed, reject approval
+                        return false;
+                    }
+
+                    // If the device is available, update its status to 'Borrowed'
                     deviceItem.DeviceItemStatus = DeviceItemStatus.Borrowed;
                     _logger.LogInformation($"DeviceItem {deviceItem.DeviceItemId} status updated to Borrowed.");
                 }
                 else
                 {
-                    _logger.LogWarning($"DeviceItem {deviceItem.DeviceItemId} could not be updated. It is not in Available state.");
+                    _logger.LogWarning($"DeviceItem {detail.DeviceItemId} could not be found.");
                 }
-
             }
+
+            // Change the status of the request to Approved after all checks pass
+            request.Status = DeviceBorrowingStatus.Approved;
             await _deviceBorrowingRepository.UpdateAsync(request);
-            await _context.SaveChangesAsync(); // Ensure changes are saved to the database
+            await _context.SaveChangesAsync(); // Save changes to the database
             return true;
         }
 

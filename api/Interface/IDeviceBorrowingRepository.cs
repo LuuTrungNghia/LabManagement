@@ -9,4 +9,5 @@ public interface IDeviceBorrowingRepository
     Task<List<DeviceBorrowingRequest>> GetByUsernameAsync(string username);  
     Task<DeviceBorrowingRequest> GetByDeviceItemIdAsync(int deviceItemId); 
     Task DeleteAsync(DeviceBorrowingRequest request);
+    Task<DeviceBorrowingRequest> CheckDeviceAvailability(int deviceItemId, DateTime startDate, DateTime endDate);
 }
