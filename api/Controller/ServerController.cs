@@ -81,6 +81,7 @@ namespace api.Controllers
                 Id = serverUser.Id,
                 Username = serverUser.Username,
                 UserServer = serverUser.UserServer,
+                PassServer = serverUser.PassServer,
                 IsApproved = serverUser.IsApproved
             };
 
@@ -132,11 +133,17 @@ namespace api.Controllers
 
         [HttpGet("history")]
         [Authorize(Roles = "admin")]
-        public async Task<IActionResult> GetHistory()
+        public async Task<IActionResult> GetHistory([FromQuery] string username)
         {
+            if (string.IsNullOrWhiteSpace(username))
+            {
+                return BadRequest("Username cannot be empty.");
+            }
+
             var serverUsers = await _context.ServerUsers
-                .OrderByDescending(u => u.Id)  // Or any other order you prefer
-                .Select(user => new
+                .Where(u => u.Username == username) // Filter by username
+                .OrderByDescending(u => u.Id)       // Sort by Id in descending order
+                .Select(user => new HistoryDto      // Use DTO
                 {
                     UserId = user.Id,
                     Username = user.Username,
@@ -144,6 +151,11 @@ namespace api.Controllers
                     IsApproved = user.IsApproved
                 })
                 .ToListAsync();
+
+            if (serverUsers.Count == 0)
+            {
+                return NotFound("No history found for the provided username.");
+            }
 
             return Ok(serverUsers);
         }

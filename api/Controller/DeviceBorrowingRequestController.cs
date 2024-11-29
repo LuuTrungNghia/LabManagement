@@ -90,14 +90,14 @@ namespace api.Controllers
         {
             try
             {
-                foreach (var detail in requestDto.DeviceBorrowingDetails)
-                {
-                    var existingRequest = await _deviceBorrowingService.CheckIfDeviceIsAvailable(detail.DeviceItemId);
-                    if (existingRequest != null && existingRequest.Status != DeviceBorrowingStatus.Completed)
-                    {
-                        return BadRequest($"Device {detail.DeviceItemId} is already borrowed or not available.");
-                    }
-                }
+                // foreach (var detail in requestDto.DeviceBorrowingDetails)
+                // {
+                //     var existingRequest = await _deviceBorrowingService.CheckIfDeviceIsAvailable(detail.DeviceItemId);
+                //     if (existingRequest != null && existingRequest.Status != DeviceBorrowingStatus.Completed)
+                //     {
+                //         return BadRequest($"Device {detail.DeviceItemId} is already borrowed or not available.");
+                //     }
+                // }
 
                 // Create borrowing request
                 var result = await _deviceBorrowingService.CreateDeviceBorrowingRequest(requestDto);

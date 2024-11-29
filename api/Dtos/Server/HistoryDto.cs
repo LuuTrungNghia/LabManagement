@@ -2,9 +2,9 @@ namespace api.Dtos.Server
 {
     public class HistoryDto
     {
-        public string Action { get; set; } // Hành động thực hiện
-        public DateTime Timestamp { get; set; } // Thời gian thực hiện
-        public string PerformedBy { get; set; } // Người thực hiện hành động
-        public string TargetAccount { get; set; } // Tài khoản bị tác động
+        public int UserId { get; set; }
+        public string Username { get; set; }
+        public string UserServer { get; set; }
+        public bool IsApproved { get; set; }
     }
 }
